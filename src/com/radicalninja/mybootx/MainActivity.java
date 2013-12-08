@@ -204,7 +204,7 @@ public class MainActivity extends Activity {
 		final AssetManager manager = getAssets();
 		// Read a bitmap from Assets
 		try {
-			InputStream open = manager.open("white_test.png");
+			InputStream open = manager.open("white.bmp");
 			Bitmap bitmap = BitmapFactory.decodeStream(open);
 			// Assign the bitmap to an ImageView in this Layout
 			previewView.setImageBitmap(bitmap);

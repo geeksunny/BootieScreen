@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.tam.image.BitmapEx;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -73,7 +75,8 @@ public class Bootscreen extends Canvas {
 	public boolean saveBitmap(Context context) {
 		// TODO: Implement this? https://github.com/kswlee/Android-BitmapEx
 		File prefixDir = (context.getExternalFilesDir(null) != null) ? context.getExternalFilesDir(null) : context.getFilesDir();
-		Log.i("Bootscreen", "File path: "+prefixDir.toString()+"/"+"DemoFile.png");
+		Log.i("Bootscreen", "File path: "+prefixDir.toString()+"/"+"DemoFile.bmp");
+		/*
 		File file = new File(prefixDir, "DemoFile.png");
 		boolean success = false;
 		try {
@@ -90,6 +93,18 @@ public class Bootscreen extends Canvas {
 			e.printStackTrace();
 			Log.i("Bootscreen", "ERROR! IOException: "+e.toString());
 		}
+		*/
+		BitmapEx bmpEx = new BitmapEx(Bitmap.createBitmap(workingCopy));
+		try {
+			bmpEx.saveAsBMP(new FileOutputStream(prefixDir.toString()+"/"+"DemoFile.bmp"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		boolean success = true;
 		
 		return success;
 	}

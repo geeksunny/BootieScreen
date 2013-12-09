@@ -1,19 +1,18 @@
 package com.radicalninja.mybootx;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.stericson.RootTools.RootTools;
+
 import android.os.Bundle;
 import android.app.Activity;
-import android.content.res.AssetManager;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,6 +31,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
 	final MainActivity parent = this;
+	@SuppressWarnings("unused")
 	private static final String LOG_TAG = "MainActivity";
 	
 	DrawerLayout drawerLayout;
@@ -103,13 +103,14 @@ public class MainActivity extends Activity {
 		// - Save Button
 		buttonSave = (Button) findViewById(R.id.buttonSave);
 		buttonSave.setOnClickListener(saveButtonClicked);
-		// Start off with the default image. //TODO: THIS WILL PULL FROM DEVICE LATER.
+		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage();
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
+		// TODO: Build out the settings of this app.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
@@ -141,11 +142,66 @@ public class MainActivity extends Activity {
 	 * OnClickListener for the Save button
 	 */
 	OnClickListener saveButtonClicked = new OnClickListener() {
+
 		public void onClick(View v) {
-			bootscreen.saveBitmap(getApplicationContext());
-			drawerLayout.closeDrawers();
-			Toast.makeText(getApplicationContext(), "Bootscreen saved to SD card!", Toast.LENGTH_SHORT).show();
-			Log.i(LOG_TAG, "Saved bitmap!");
+			
+			// AlertDialogs for handling the result of the installation procedure.
+			DialogInterface.OnClickListener handleInstallationOutcome = new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					switch (which) {
+					case DialogInterface.BUTTON_POSITIVE:
+						// YES (success)
+						RootTools.restartAndroid();
+						break;
+					case DialogInterface.BUTTON_NEGATIVE:
+						// NO (Success)
+						Toast.makeText(getApplicationContext(), "Installation SUCCESS!", Toast.LENGTH_SHORT).show();
+						drawerLayout.closeDrawer(leftDrawer);
+						break;
+					case DialogInterface.BUTTON_NEUTRAL:
+						// NEUTRAL (Failure)
+						Toast.makeText(getApplicationContext(), "Installation FAILURE!", Toast.LENGTH_SHORT).show();
+						drawerLayout.closeDrawer(leftDrawer);
+						break;
+					}
+				}
+			};
+			// - SUCCESSFUL INSTALLTION AlertDialog
+			final AlertDialog.Builder handleInstallationSuccess = new AlertDialog.Builder(getApplicationContext());
+			handleInstallationSuccess
+				.setMessage("Your personalized bootscreen was successfully installed! Would you like to reboot now and test it out?")
+				.setPositiveButton("Yes", handleInstallationOutcome)
+				.setNegativeButton("No", handleInstallationOutcome);
+			// - FAILED INSTALLATION AlertDialog
+			final AlertDialog.Builder handleInstallationFailure = new AlertDialog.Builder(getApplicationContext());
+			handleInstallationFailure
+				.setMessage("Unfortunately it looks like your bootscreen could not be installed! Check the logs and submit a bug report or try again later!")
+				.setNeutralButton("Ok", handleInstallationOutcome);
+			
+			// AlertDialog for proceeding with the bootscreen installation.
+			DialogInterface.OnClickListener doInstallation = new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					switch (which) {
+					case DialogInterface.BUTTON_POSITIVE:
+						// Yes button clicked
+						bootscreen.installPersonalizedBootscreen(handleInstallationSuccess, handleInstallationFailure);
+						break;
+					case DialogInterface.BUTTON_NEGATIVE:
+						// No button clicked
+						Toast.makeText(getApplicationContext(), "Installation was CANCELLED!", Toast.LENGTH_SHORT).show();
+						drawerLayout.closeDrawer(leftDrawer);
+						break;
+					}
+				}
+			};
+			AlertDialog.Builder doInstallationDialog = new AlertDialog.Builder(getApplicationContext());
+			doInstallationDialog
+				.setMessage("This will write your personalized bootscreen to your phone's clogo block device. ARE YOU SURE YOU WANT TO DO THIS?")
+				.setPositiveButton("Yes", doInstallation)
+				.setNegativeButton("No", doInstallation)
+				.show();
 		}
 	};
 	
@@ -196,19 +252,10 @@ public class MainActivity extends Activity {
 	 * Loads the default[debug] boot image from the app's assets folder into memory / the preview pane.
 	 */
 	private void loadImage() {
-		// Get the AssetManager
-		final AssetManager manager = getAssets();
-		// Read a bitmap from Assets
-		try {
-			InputStream open = manager.open("white.bmp");
-			Bitmap bitmap = BitmapFactory.decodeStream(open);
-			// Assign the bitmap to an ImageView in this Layout
-			previewView.setImageBitmap(bitmap);
-			// Load the bitmap into the Bootscreen object
-			bootscreen = new Bootscreen(bitmap);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		// Load the bitmap into the Bootscreen object
+		bootscreen = new Bootscreen(getApplicationContext());
+		// Assign the bitmap to an ImageView in this Layout
+		previewView.setImageBitmap(bootscreen.getBitmap());
 	}
 
 	/**

@@ -156,25 +156,25 @@ public class MainActivity extends Activity {
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// NO (Success)
-						Toast.makeText(getApplicationContext(), "Installation SUCCESS!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(parent, "Installation SUCCESS!", Toast.LENGTH_SHORT).show();
 						drawerLayout.closeDrawer(leftDrawer);
 						break;
 					case DialogInterface.BUTTON_NEUTRAL:
 						// NEUTRAL (Failure)
-						Toast.makeText(getApplicationContext(), "Installation FAILURE!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(parent, "Installation FAILURE!", Toast.LENGTH_SHORT).show();
 						drawerLayout.closeDrawer(leftDrawer);
 						break;
 					}
 				}
 			};
 			// - SUCCESSFUL INSTALLTION AlertDialog
-			final AlertDialog.Builder handleInstallationSuccess = new AlertDialog.Builder(getApplicationContext());
+			final AlertDialog.Builder handleInstallationSuccess = new AlertDialog.Builder(parent);
 			handleInstallationSuccess
 				.setMessage("Your personalized bootscreen was successfully installed! Would you like to reboot now and test it out?")
 				.setPositiveButton("Yes", handleInstallationOutcome)
 				.setNegativeButton("No", handleInstallationOutcome);
 			// - FAILED INSTALLATION AlertDialog
-			final AlertDialog.Builder handleInstallationFailure = new AlertDialog.Builder(getApplicationContext());
+			final AlertDialog.Builder handleInstallationFailure = new AlertDialog.Builder(parent);
 			handleInstallationFailure
 				.setMessage("Unfortunately it looks like your bootscreen could not be installed! Check the logs and submit a bug report or try again later!")
 				.setNeutralButton("Ok", handleInstallationOutcome);
@@ -190,13 +190,13 @@ public class MainActivity extends Activity {
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// No button clicked
-						Toast.makeText(getApplicationContext(), "Installation was CANCELLED!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(parent, "Installation was CANCELLED!", Toast.LENGTH_SHORT).show();
 						drawerLayout.closeDrawer(leftDrawer);
 						break;
 					}
 				}
 			};
-			AlertDialog.Builder doInstallationDialog = new AlertDialog.Builder(getApplicationContext());
+			AlertDialog.Builder doInstallationDialog = new AlertDialog.Builder(parent);
 			doInstallationDialog
 				.setMessage("This will write your personalized bootscreen to your phone's clogo block device. ARE YOU SURE YOU WANT TO DO THIS?")
 				.setPositiveButton("Yes", doInstallation)
@@ -253,7 +253,7 @@ public class MainActivity extends Activity {
 	 */
 	private void loadImage() {
 		// Load the bitmap into the Bootscreen object
-		bootscreen = new Bootscreen(getApplicationContext());
+		bootscreen = new Bootscreen(parent);
 		// Assign the bitmap to an ImageView in this Layout
 		previewView.setImageBitmap(bootscreen.getBitmap());
 	}

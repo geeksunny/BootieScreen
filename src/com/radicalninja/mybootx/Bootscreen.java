@@ -27,6 +27,8 @@ public class Bootscreen extends Canvas {
 	private Paint painter;
 	private String filePrefixDirectory;
 	
+	private static final int BOOTSCREEN_RESOLUTION_WIDTH = 720;
+	private static final int BOOTSCREEN_RESOLUTION_HEIGHT = 1280;
 	private static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
 	private static final String FILENAME_WORKING_COPY = "clogo.bmp";
 	private static final String LOG_TAG = "Bootscreen";
@@ -40,8 +42,11 @@ public class Bootscreen extends Canvas {
 		// Storing the application context.
 		mContext = context;
 		// Setting the filePrefixDirectory variable.
-		File prefixDir = (mContext.getExternalFilesDir(null) != null) ? mContext.getExternalFilesDir(null) : mContext.getFilesDir();
+		//File prefixDir = (mContext.getExternalFilesDir(null) != null) ? mContext.getExternalFilesDir(null) : mContext.getFilesDir();
+		File prefixDir = mContext.getExternalFilesDir(null);	// Temp. fix for bugs listed below.
 		filePrefixDirectory = prefixDir.toString();
+		//TODO: Bug-If the /sdcard/Android/data/... directory is missing at app's first launch (i.e fresh install / data wiped) then it see's this as a sign to use /data/data/...
+		//TODO: Bug-If the filePrefixDirectory is pointing at /data/data/..., all of my File objects that reference the raw filepath will fail with EACCES (Permission denied). Re-write these calls to respect permissions properly.
 		// Backing up this bitmap for easy reverting.
 		originalState = bitmapFromDeviceBackup(true);
 		// Creating a self-contained working copy Bitmap
@@ -58,7 +63,7 @@ public class Bootscreen extends Canvas {
 	/**
 	 * Constructor method that accepts a Bitmap object. The originalState & workingCopy member Bitmap objects get set to this given Bitmap object.
 	 * @param bitmap The given bitmap object to initialize the canvas with.
-	 * @param context The app's active Contect object to utilize with member method operations.
+	 * @param context The app's active Context object to utilize with member method operations.
 	 */
 	public Bootscreen(Bitmap bitmap, Context context) {
 		
@@ -190,7 +195,14 @@ public class Bootscreen extends Canvas {
 			Command command = new Command(0, cmd) {
 
 				@Override
-				public void commandCompleted(int arg0, int arg1) { }
+				public void commandCompleted(int id, int arg1) {
+					// Grabbing the now-completely backed up DEVICE_BACKUP file.
+					originalState = BitmapFactory.decodeFile(filePrefixDirectory+"/"+FILENAME_DEVICE_BACKUP);
+					// Creating a self-contained working copy Bitmap
+					workingCopy = originalState.copy(originalState.getConfig(), true);
+					setBitmap(workingCopy);
+					//TODO: REDRAW canvas?
+				}
 
 				@Override
 				public void commandOutput(int id, String line) {
@@ -201,7 +213,7 @@ public class Bootscreen extends Canvas {
 				}
 
 				@Override
-				public void commandTerminated(int arg0, String arg1) { }
+				public void commandTerminated(int id, String line) { }
 			};
 			try {
 				RootTools.getShell(true).add(command);
@@ -241,6 +253,8 @@ public class Bootscreen extends Canvas {
 		if (RootTools.isAccessGiven()) {
 			Log.i(LOG_TAG, "Root granted! About to PUSH bitmap...");
 			String cmd = String.format("dd if=%s/%s of=/dev/block/platform/msm_sdcc.1/by-name/clogo", filePrefixDirectory, FILENAME_WORKING_COPY);
+			//TEST FORTHELOVEOFGOD
+			//String cmd = "echo 'Aw yeah! Get that!'";
 			Log.i(LOG_TAG, "About to run this command...");
 			Log.i(LOG_TAG, cmd);
 			Command command = new Command(0, cmd) {
@@ -337,22 +351,25 @@ public class Bootscreen extends Canvas {
 		} else {
 			if (shouldPullFromDeviceIfNoneOnFile) {
 				if (pullBootscreenFromDevice(false)) {
-					Log.i(LOG_TAG, "Bootscreen has been pulled from the device! Attempting to load the Bitmap now...");
-					Bitmap bitmap = BitmapFactory.decodeFile(filePrefixDirectory+"/"+FILENAME_DEVICE_BACKUP);
-					return bitmap;
+					Log.i(LOG_TAG, "Bootscreen is in the process of being backed up right now! The canvas will update when it finishes.");
+					return createEmptyBitmap();
 				} else {
 					Log.e(LOG_TAG, "Bootscreen could not be successfully pulled from the device!");
 					Log.i(LOG_TAG, "Creating a new empty bitmap!");
-					//TODO CREATE NEW EMPTY BITMAP PROGRAMATICALLY! Might involve test code at asset files again...
-					//TODO This return value is SIMPLY placeholder! Replace this ASAP!!!
-					//return null;
-					return BitmapFactory.decodeFile(filePrefixDirectory+"/"+FILENAME_DEVICE_BACKUP);
+					return createEmptyBitmap();
 				}
 			}
 		}
 		// If we've somehow managed to get here, we probably deserve a null return value.
-		//return null;
-		return BitmapFactory.decodeFile(filePrefixDirectory+"/"+FILENAME_DEVICE_BACKUP);
+		return null;
+	}
+	
+	/**
+	 * Convenience method for quickly creating an empty Bitmap object.
+	 * @return Returns an empty Bitmap object at the resolution specified by the object's constants.
+	 */
+	public Bitmap createEmptyBitmap() {
+		return Bitmap.createBitmap(BOOTSCREEN_RESOLUTION_WIDTH, BOOTSCREEN_RESOLUTION_HEIGHT, Bitmap.Config.ARGB_8888);
 	}
 	
 	public boolean installPersonalizedBootscreen(AlertDialog.Builder successHandlingAlertDialogBuilder, AlertDialog.Builder failureHandlingAlertDialogBuilder) {

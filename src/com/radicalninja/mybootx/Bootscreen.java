@@ -1,15 +1,13 @@
 package com.radicalninja.mybootx;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
 import com.stericson.RootTools.RootTools;
 import com.stericson.RootTools.exceptions.RootDeniedException;
 import com.stericson.RootTools.execution.Command;
-import com.tam.image.BitmapEx;
+import com.ultrasonic.android.image.bitmap.util.AndroidBmpUtil;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -144,7 +142,7 @@ public class Bootscreen extends Canvas {
 	}
 	
 	/**
-	 * Utilizes com.tam.image.BitmapEx to save a .bmp file to the SD card.
+	 * Utilizes com.ultrasonic.android.image.bitmap.util to save a .bmp file to the SD card.
 	 * @return Returns true on confirmed existence of the new .bmp file.
 	 */
 	public boolean saveBitmap() {
@@ -154,19 +152,10 @@ public class Bootscreen extends Canvas {
 			Log.e(LOG_TAG, "Could not delete an existing "+FILENAME_WORKING_COPY+" file.");
 			return false;
 		}
-		// Compress and save the Bitmap to a .bmp file.
-		BitmapEx bmpEx = new BitmapEx(Bitmap.createBitmap(workingCopy));
-		try {
-			bmpEx.saveAsBMP(new FileOutputStream(filePrefixDirectory+"/"+FILENAME_WORKING_COPY));
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		// Check if the new data file exists. Return result.
-		if (fileExists(FILENAME_WORKING_COPY)) {
+		// Compress and save workingCopy Bitmap to WORKING_COPY.
+		AndroidBmpUtil bmpUtil = new AndroidBmpUtil();
+		boolean isSaveResult = bmpUtil.save(workingCopy, filePrefixDirectory+"/"+FILENAME_WORKING_COPY);
+		if (isSaveResult && fileExists(FILENAME_WORKING_COPY)) {
 			return true;
 		} else {
 			return false;

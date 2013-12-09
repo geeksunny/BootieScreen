@@ -30,7 +30,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+
 	final MainActivity parent = this;
+	private static final String LOG_TAG = "MainActivity";
 	
 	DrawerLayout drawerLayout;
 	FrameLayout leftDrawer;
@@ -143,7 +145,7 @@ public class MainActivity extends Activity {
 			bootscreen.saveBitmap(getApplicationContext());
 			drawerLayout.closeDrawers();
 			Toast.makeText(getApplicationContext(), "Bootscreen saved to SD card!", Toast.LENGTH_SHORT).show();
-			Log.i("MainActivity", "Saved bitmap!");
+			Log.i(LOG_TAG, "Saved bitmap!");
 		}
 	};
 	

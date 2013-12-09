@@ -16,9 +16,11 @@ import android.graphics.Typeface;
 import android.util.Log;
 
 public class Bootscreen extends Canvas {
+	
 	private Bitmap originalState;
 	private Bitmap workingCopy;
 	private Paint painter;
+	private static final String LOG_TAG = "Bootscreen";
 
 	public Bootscreen() {
 		// TODO Auto-generated constructor stub

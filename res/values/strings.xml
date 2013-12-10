@@ -3,11 +3,11 @@
 
     <string name="app_name">MyBootX</string>
     <string name="action_settings">Settings??</string>
-    <string name="inputMessageLabel">Boot Message:</string>
+    <string name="inputMessageLabel">First, lets get your personalized boot message!</string>
+    <string name="inputFontSizeLabel">Next, set the size of your message\'s font.</string>
     <string name="inputMessageHint">Hello Moto?</string>
-    <string name="inputFontSizeLabel">Font Size:</string>
-    <string name="inputTextColorLabel">Text Color:</string>
-    <string name="inputTypefaceLabel">Typeface:</string>
+    <string name="inputTextColorLabel">Choose a text color…</string>
+    <string name="inputTypefaceLabel">…and a typeface…</string>
     <string name="buttonPreviewLabel">Show Preview</string>
     <string name="buttonSaveLabel">Personalize Bootscreen</string>
     <string-array name="inputTypeface">

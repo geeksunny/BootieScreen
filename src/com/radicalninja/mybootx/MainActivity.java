@@ -83,12 +83,12 @@ public class MainActivity extends Activity {
 		// - Color Selection
 		inputColor = (Spinner) findViewById(R.id.inputColor);
 		ArrayAdapter<CharSequence> adapterColor = ArrayAdapter.createFromResource(this, R.array.inputColor, android.R.layout.simple_spinner_item);
-		adapterColor.setDropDownViewResource(android.R.layout.simple_spinner_item);
+		adapterColor.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		inputColor.setAdapter(adapterColor);
 		// - Typeface Selection
 		inputTypeface = (Spinner) findViewById(R.id.inputTypeface);
 		ArrayAdapter<CharSequence> adapterTypeface = ArrayAdapter.createFromResource(this, R.array.inputTypeface, android.R.layout.simple_spinner_item);
-		adapterTypeface.setDropDownViewResource(android.R.layout.simple_spinner_item);
+		adapterTypeface.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		inputTypeface.setAdapter(adapterTypeface);
 		// - Preview Button
 		buttonPreview = (Button) findViewById(R.id.buttonPreview);

@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:padding="10dp" >
 
     <TextView
         android:id="@+id/textMessageHint"
@@ -24,25 +25,35 @@
         android:id="@+id/textFontSizeHint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
         android:text="@string/inputFontSizeLabel" />
 
-    <SeekBar
-        android:id="@+id/inputFontSize"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="36"
-        android:progress="6" />
+        android:layout_height="wrap_content" >
 
-    <TextView
-        android:id="@+id/textFontSizeValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="42dp" />
+        <SeekBar
+            android:id="@+id/inputFontSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="36"
+            android:progress="6" />
+
+        <TextView
+            android:id="@+id/textFontSizeValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="42dp"
+            android:padding="5dp" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textColorHint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
         android:text="@string/inputTextColorLabel" />
 
     <Spinner
@@ -54,6 +65,7 @@
         android:id="@+id/textTypefaceHint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
         android:text="@string/inputTypefaceLabel" />
 
     <Spinner
@@ -63,14 +75,10 @@
 
     <Button
         android:id="@+id/buttonPreview"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginTop="15dp"
         android:text="@string/buttonPreviewLabel" />
-
-    <TextView
-        android:id="@+id/textPreviewHint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="(Swipe from the left to see the image preview!)" />
 
 </LinearLayout>

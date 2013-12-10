@@ -10,7 +10,9 @@ import com.stericson.RootTools.execution.Command;
 import com.ultrasonic.android.image.bitmap.util.AndroidBmpUtil;
 
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -292,6 +294,27 @@ public class Bootscreen extends Canvas {
 		} else {
 			//TODO: Present an AlertDialog notifying the user that the app did not recieve root rights.
 			Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
+			// TODO: Move all of this code into its own method that can have callback objects passed in to it. Reference it here and in the other method just like this above.
+			AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
+												.setCancelable(true)
+												.setTitle("Root is required!")
+												.setMessage("The app was not able to get the root privileges! Do you want to try again?")
+												.setInverseBackgroundForced(true);
+			builder.setPositiveButton("Yes, Try Again.", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO: Rewrite the bitmap method in a manner that can be started over from the start. Call that method here.
+				}
+			});
+			builder.setNegativeButton("No, exit the program.", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					// TODO: reset app back to a position that can be attempting to pull the bitmap again, and push it to the system background.
+				}
+			});
+			builder.create().show();
 			return false;
 		}
 		

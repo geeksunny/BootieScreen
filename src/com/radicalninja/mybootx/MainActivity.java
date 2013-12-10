@@ -3,6 +3,10 @@ package com.radicalninja.mybootx;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.larswerkman.holocolorpicker.ColorPicker;
+import com.larswerkman.holocolorpicker.ColorPicker.OnColorChangedListener;
+import com.larswerkman.holocolorpicker.OpacityBar;
+import com.larswerkman.holocolorpicker.SVBar;
 import com.stericson.RootTools.RootTools;
 
 import android.os.Bundle;
@@ -13,6 +17,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -95,7 +100,7 @@ public class MainActivity extends Activity {
 		buttonPreview.setOnClickListener(previewButtonClicked);
 		// - Save Button
 		buttonSave = (Button) findViewById(R.id.buttonSave);
-		buttonSave.setOnClickListener(saveButtonClicked);
+		buttonSave.setOnClickListener(colorPicker);//saveButtonClicked
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage();
 	}
@@ -195,6 +200,18 @@ public class MainActivity extends Activity {
 				.show();
 		}
 	};
+	
+	/**
+	 * Calling forth a color picker!
+	 */
+	OnClickListener colorPicker = new OnClickListener() {
+		public void onClick(View v) {
+			ColorDialogBuilder builder = new ColorDialogBuilder(parent);
+			builder.setCancelable(true);
+			//builder.setColor(int color);
+			builder.create().show();
+		}
+	 };
 	
 	/**
 	 * Get float value of current selected font size.

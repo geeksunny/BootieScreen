@@ -201,7 +201,6 @@ public class Bootscreen extends Canvas {
 					// Creating a self-contained working copy Bitmap
 					workingCopy = originalState.copy(originalState.getConfig(), true);
 					setBitmap(workingCopy);
-					//TODO: REDRAW canvas?
 				}
 
 				@Override
@@ -253,8 +252,6 @@ public class Bootscreen extends Canvas {
 		if (RootTools.isAccessGiven()) {
 			Log.i(LOG_TAG, "Root granted! About to PUSH bitmap...");
 			String cmd = String.format("dd if=%s/%s of=/dev/block/platform/msm_sdcc.1/by-name/clogo", filePrefixDirectory, FILENAME_WORKING_COPY);
-			//TEST FORTHELOVEOFGOD
-			//String cmd = "echo 'Aw yeah! Get that!'";
 			Log.i(LOG_TAG, "About to run this command...");
 			Log.i(LOG_TAG, cmd);
 			Command command = new Command(0, cmd) {

@@ -30,6 +30,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+	// TODO Add code that checks build.prop for device name and force quit if user does not have Moto X (Or other possibly compatible devices, like the mini or G maybe?)
 	final MainActivity parent = this;
 	@SuppressWarnings("unused")
 	private static final String LOG_TAG = "MainActivity";
@@ -69,21 +70,13 @@ public class MainActivity extends Activity {
 		inputFontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			
 			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void onStopTrackingTouch(SeekBar seekBar) { }
 			
 			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-				// TODO Auto-generated method stub
-				
-			}
+			public void onStartTrackingTouch(SeekBar seekBar) { }
 			
 			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress,
-					boolean fromUser) {
-				// TODO Auto-generated method stub
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				textFontSizeValue.setText(String.format("%ddp", (int) parent.getFontSize() ));
 			}
 		});
@@ -120,8 +113,6 @@ public class MainActivity extends Activity {
 	 */
 	OnClickListener previewButtonClicked = new OnClickListener() {
 		public void onClick(View v) {
-			// Just for debug purposes, a Toast!
-			//Toast.makeText(getApplicationContext(), "Starting Test!", Toast.LENGTH_SHORT).show();
 
 			// Reset the bootscreen to its original state for a new preview.
 			bootscreen.resetBitmap();
@@ -260,7 +251,6 @@ public class MainActivity extends Activity {
 
 	/**
 	 * Loads the given {@link com.android.graphics.Bitmap} into memory / the preview pane.
-	 * 
 	 * @param	bitmap	The given Bitmap object to load.
 	 */
 	private void loadImage(Bitmap bitmap) {

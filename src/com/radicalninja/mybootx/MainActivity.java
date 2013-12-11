@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -33,8 +34,8 @@ public class MainActivity extends Activity {
 
 	// TODO Add code that checks build.prop for device name and force quit if user does not have Moto X (Or other possibly compatible devices, like the mini or G maybe?)
 	final MainActivity parent = this;
-	@SuppressWarnings("unused")
 	private static final String LOG_TAG = "MainActivity";
+	private static final String PREFS_NAME = "BootscreenPrefs";
 	
 	DrawerLayout drawerLayout;
 	FrameLayout leftDrawer;
@@ -87,9 +88,7 @@ public class MainActivity extends Activity {
 		// - Color Selection (PICKER)
 		buttonColorPicker = (Button) findViewById(R.id.buttonColorPicker);
 		buttonColorPicker.setOnClickListener(colorPicker);
-		textColor = Color.BLACK;
 		textColorPickerPreview = (TextView) findViewById(R.id.textColorPickerPreview);
-		textColorPickerPreview.setBackgroundColor(textColor);
 		// - Typeface Selection
 		inputTypeface = (Spinner) findViewById(R.id.inputTypeface);
 		ArrayAdapter<CharSequence> adapterTypeface = ArrayAdapter.createFromResource(this, R.array.inputTypeface, android.R.layout.simple_spinner_item);
@@ -101,8 +100,39 @@ public class MainActivity extends Activity {
 		// - Save Button
 		buttonSave = (Button) findViewById(R.id.buttonSave);
 		buttonSave.setOnClickListener(saveButtonClicked);
+
+		// Saved Preferences
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		// - Personal Message
+		inputMessage.setText(settings.getString("inputMessage", ""));
+		// - Font Size
+		int fontSize = settings.getInt("inputFontSize", 42);
+		inputFontSize.setProgress(fontSize - 36);
+		textFontSizeValue.setText(String.format("%ddp", fontSize ));
+		// - Text Color
+		textColor = settings.getInt("inputTextColor", Color.BLACK);
+		textColorPickerPreview.setBackgroundColor(textColor);
+
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage();
+	}
+	
+	/**
+	 * Save all current Bootscreen control settings.
+	 */
+	public void saveSettings() {
+		// Saved Preferences & Editor
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		// - Personal Message
+		editor.putString("inputMessage", inputMessage.getText().toString());
+		// - Font Size
+		editor.putInt("inputFontSize", (int) getFontSize());
+		// - Text Color
+		editor.putInt("inputTextColor", textColor);
+		// Commit new settings
+		editor.commit();
+
 	}
 
 	@Override
@@ -182,6 +212,7 @@ public class MainActivity extends Activity {
 					switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						// Yes button clicked
+						saveSettings();
 						bootscreen.installPersonalizedBootscreen(handleInstallationSuccess, handleInstallationFailure);
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
@@ -218,7 +249,6 @@ public class MainActivity extends Activity {
 				}
 				
 			});
-			//builder.setColor(int color);
 			builder.create().show();
 		}
 	 };

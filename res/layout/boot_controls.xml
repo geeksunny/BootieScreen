@@ -16,6 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/inputMessageHint"
+        android:padding="10dp"
         android:ems="10" >
 
         <requestFocus />
@@ -32,6 +33,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
+        <TextView
+            android:id="@+id/textFontSizeValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:text="42dp" />
+
         <SeekBar
             android:id="@+id/inputFontSize"
             android:layout_width="wrap_content"
@@ -39,13 +47,6 @@
             android:layout_weight="1"
             android:max="36"
             android:progress="6" />
-
-        <TextView
-            android:id="@+id/textFontSizeValue"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="42dp"
-            android:padding="5dp" />
 
     </LinearLayout>
 
@@ -56,11 +57,24 @@
         android:layout_marginTop="15dp"
         android:text="@string/inputTextColorLabel" />
 
-    <Spinner
-        android:id="@+id/inputColor"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content" >
 
+        <TextView
+            android:id="@+id/textColorPickerPreview"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5" />
+
+        <Button
+            android:id="@+id/buttonColorPicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:text="Pick a Color" />
+    </LinearLayout>
+    
     <TextView
         android:id="@+id/textTypefaceHint"
         android:layout_width="wrap_content"

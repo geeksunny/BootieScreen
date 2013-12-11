@@ -3,10 +3,6 @@ package com.radicalninja.mybootx;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.larswerkman.holocolorpicker.ColorPicker;
-import com.larswerkman.holocolorpicker.ColorPicker.OnColorChangedListener;
-import com.larswerkman.holocolorpicker.OpacityBar;
-import com.larswerkman.holocolorpicker.SVBar;
 import com.stericson.RootTools.RootTools;
 
 import android.os.Bundle;
@@ -48,10 +44,13 @@ public class MainActivity extends Activity {
 	EditText inputMessage;
 	SeekBar inputFontSize;
 	TextView textFontSizeValue;
-	Spinner inputColor;
 	Spinner inputTypeface;
+	Button buttonColorPicker;
 	Button buttonPreview;
 	Button buttonSave;
+	
+	Integer textColor;
+	TextView textColorPickerPreview;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -85,11 +84,12 @@ public class MainActivity extends Activity {
 				textFontSizeValue.setText(String.format("%ddp", (int) parent.getFontSize() ));
 			}
 		});
-		// - Color Selection
-		inputColor = (Spinner) findViewById(R.id.inputColor);
-		ArrayAdapter<CharSequence> adapterColor = ArrayAdapter.createFromResource(this, R.array.inputColor, android.R.layout.simple_spinner_item);
-		adapterColor.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		inputColor.setAdapter(adapterColor);
+		// - Color Selection (PICKER)
+		buttonColorPicker = (Button) findViewById(R.id.buttonColorPicker);
+		buttonColorPicker.setOnClickListener(colorPicker);
+		textColor = Color.BLACK;
+		textColorPickerPreview = (TextView) findViewById(R.id.textColorPickerPreview);
+		textColorPickerPreview.setBackgroundColor(textColor);
 		// - Typeface Selection
 		inputTypeface = (Spinner) findViewById(R.id.inputTypeface);
 		ArrayAdapter<CharSequence> adapterTypeface = ArrayAdapter.createFromResource(this, R.array.inputTypeface, android.R.layout.simple_spinner_item);
@@ -100,7 +100,7 @@ public class MainActivity extends Activity {
 		buttonPreview.setOnClickListener(previewButtonClicked);
 		// - Save Button
 		buttonSave = (Button) findViewById(R.id.buttonSave);
-		buttonSave.setOnClickListener(colorPicker);//saveButtonClicked
+		buttonSave.setOnClickListener(saveButtonClicked);
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage();
 	}
@@ -123,7 +123,7 @@ public class MainActivity extends Activity {
 			bootscreen.resetBitmap();
 			// Update settings for the bootscreen.
 			bootscreen.setTextSize(getFontSize());
-			bootscreen.setColor(getColor());
+			bootscreen.setColor(textColor);
 			bootscreen.setTypeface(getTypeface());
 			// Write to the bootscreen.
 			bootscreen.doPersonalization(inputMessage.getText().toString());
@@ -206,12 +206,27 @@ public class MainActivity extends Activity {
 	 */
 	OnClickListener colorPicker = new OnClickListener() {
 		public void onClick(View v) {
-			ColorDialogBuilder builder = new ColorDialogBuilder(parent);
+			final ColorDialogBuilder builder = new ColorDialogBuilder(parent);
 			builder.setCancelable(true);
+			builder.setColor(textColor);
+			builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					Log.i(LOG_TAG, "Color picker was success!");
+					updateTextColor(builder.getColorPicker().getColor());
+				}
+				
+			});
 			//builder.setColor(int color);
 			builder.create().show();
 		}
 	 };
+	 
+	 public void updateTextColor(int color) {
+		 textColor = color;
+		 textColorPickerPreview.setBackgroundColor(color);
+	 }
 	
 	/**
 	 * Get float value of current selected font size.
@@ -220,27 +235,6 @@ public class MainActivity extends Activity {
 		int fontSize = inputFontSize.getProgress() + 36;
 		return (float) fontSize;
 	}
-	
-	/**
-	 * Get integer value for the current selected color
-	 */
-	private int getColor() {
-		Map<String, Integer> colorMap = new HashMap<String, Integer>();
-		colorMap.put("BLACK", Color.BLACK);
-		colorMap.put("BLUE", Color.BLUE);
-		colorMap.put("CYAN", Color.CYAN);
-		colorMap.put("DKGRAY", Color.DKGRAY);
-		colorMap.put("GRAY", Color.GRAY);
-		colorMap.put("GREEN", Color.GREEN);
-		colorMap.put("LTGRAY", Color.LTGRAY);
-		colorMap.put("MAGENTA", Color.MAGENTA);
-		colorMap.put("RED", Color.RED);
-		colorMap.put("WHITE", Color.WHITE);
-		colorMap.put("YELLOW", Color.YELLOW);
-		
-		return colorMap.get((String) inputColor.getAdapter().getItem(inputColor.getSelectedItemPosition()));
-	}
-	
 
 	/**
 	 * Get integer value for the current selected typeface

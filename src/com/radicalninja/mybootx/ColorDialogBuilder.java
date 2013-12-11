@@ -35,42 +35,50 @@ public class ColorDialogBuilder extends Builder {
 		picker = (ColorPicker) cpv.findViewById(R.id.picker);
 		svBar = (SVBar) cpv.findViewById(R.id.svbar);
 		opacityBar = (OpacityBar) cpv.findViewById(R.id.opacitybar);
-		//
-		ColorChangedListener colorListener = new ColorChangedListener();
 		picker.addSVBar(svBar);
 		picker.addOpacityBar(opacityBar);
-		//picker.setOnColorChangedListener(colorListener);
 		
 		this.setView(cpv);
 		
 		// Setting the default OnClickListeners.
-		this.setPositiveButton("Confirm", yesButtonPressed);
+		this.setPositiveButton("Confirm", defaultButtonActions)
+			.setNegativeButton("Cancel", defaultButtonActions);
 	}
 	
-	public OnClickListener yesButtonPressed = new OnClickListener() {
+	/**
+	 * Returns the active ColorPicker object.
+	 * @return Returns the active ColorPicker object.
+	 */
+	public ColorPicker getColorPicker() {
+		return picker;
+	}
+	
+	/**
+	 * Initializes the color picker to use the given color value on all applicable spots.
+	 * @param color An integer of the given color value.
+	 */
+	public void setColor(int color) {
+		picker.setOldCenterColor(color);
+		picker.setNewCenterColor(color);
+		picker.setColor(color);
+	}
+	
+	/**
+	 * Default generic button actions. To be overwritten by class interfacing with this object.
+	 */
+	public OnClickListener defaultButtonActions = new OnClickListener() {
 
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
-			// TODO Auto-generated method stub
-			//Log.i(LOG_TAG, "YES PRESSED! Passing the color back!");
-			//Log.i(LOG_TAG, "Color: "+picker.getColor());
-			//mColorInteger = String.format("%d", picker.getColor());
+			switch (which) {
+			case DialogInterface.BUTTON_POSITIVE:
+				break;
+			case DialogInterface.BUTTON_NEGATIVE:
+				break;
+			case DialogInterface.BUTTON_NEUTRAL:
+				break;
+			}
 		}
 	};
-
-	/*
-	 * Implementing a quick OnColorChangedListener for the color picker.
-	 * 
-	 * All this code will probably move into its own class later.
-	 */
-	class ColorChangedListener extends java.lang.Object implements OnColorChangedListener {
-
-		@Override
-		public void onColorChanged(int color) {
-			// TODO Auto-generated method stub
-			//Log.i("ColorPicker", "Color: " + color);
-		}
-		
-	}
 
 }

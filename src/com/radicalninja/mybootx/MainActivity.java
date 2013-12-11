@@ -106,8 +106,8 @@ public class MainActivity extends Activity {
 		// - Personal Message
 		inputMessage.setText(settings.getString("inputMessage", ""));
 		// - Font Size
-		int fontSize = settings.getInt("inputFontSize", 42);
-		inputFontSize.setProgress(fontSize - 36);
+		int fontSize = settings.getInt("inputFontSize", 36);
+		inputFontSize.setProgress(fontSize - 20);
 		textFontSizeValue.setText(String.format("%ddp", fontSize ));
 		// - Text Color
 		textColor = settings.getInt("inputTextColor", Color.BLACK);
@@ -262,7 +262,7 @@ public class MainActivity extends Activity {
 	 * Get float value of current selected font size.
 	 */
 	private float getFontSize() {
-		int fontSize = inputFontSize.getProgress() + 36;
+		int fontSize = inputFontSize.getProgress() + 16;
 		return (float) fontSize;
 	}
 
@@ -270,6 +270,8 @@ public class MainActivity extends Activity {
 	 * Get integer value for the current selected typeface
 	 */
 	private Typeface getTypeface() {
+		//TODO: Change this from a Spinner to a radio selection group, and each option shows a preview of the typeface.
+		
 		Map<String, Typeface> typefaceMap = new HashMap<String, Typeface>();
 		typefaceMap.put("DEFAULT", Typeface.DEFAULT);
 		typefaceMap.put("DEFAULT_BOLD", Typeface.DEFAULT_BOLD);

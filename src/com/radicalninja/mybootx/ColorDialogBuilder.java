@@ -3,19 +3,15 @@ package com.radicalninja.mybootx;
 import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.OpacityBar;
 import com.larswerkman.holocolorpicker.SVBar;
-import com.larswerkman.holocolorpicker.ColorPicker.OnColorChangedListener;
-
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 public class ColorDialogBuilder extends Builder {
+	// TODO: Fix up styling on ColorPickerBuilder's layout and alert dialog. Buttons should blend in with picker. Picker should have more padding between it and outer edge of the surrounding alert dialog.
 	
 	private static final String LOG_TAG = "ColorDialogBuilder";
 	

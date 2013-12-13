@@ -86,9 +86,11 @@ public class MainActivity extends Activity {
 			}
 		});
 		// - Color Selection (PICKER)
+		// TODO: Investigate the possibility / benefits / detremints to stuffing the color well + button into part of ColorPickerDialogBuilder and make it a more universal widget package.
 		buttonColorPicker = (Button) findViewById(R.id.buttonColorPicker);
 		buttonColorPicker.setOnClickListener(colorPicker);
 		textColorPickerPreview = (TextView) findViewById(R.id.textColorPickerPreview);
+		textColorPickerPreview.setOnClickListener(colorPicker);
 		// - Typeface Selection
 		inputTypeface = (Spinner) findViewById(R.id.inputTypeface);
 		ArrayAdapter<CharSequence> adapterTypeface = ArrayAdapter.createFromResource(this, R.array.inputTypeface, android.R.layout.simple_spinner_item);

@@ -163,9 +163,7 @@ public class MainActivity extends Activity {
 			bootscreen.setColor(textColor);
 			bootscreen.setTypeface(getTypeface());
 			// Write to the bootscreen.
-			bootscreen.doPersonalization(inputMessage.getText().toString());
-			// Update the preview.
-			previewView.setImageBitmap(bootscreen.getBitmap());
+			bootscreen.doPersonalizationAndRedraw(inputMessage.getText().toString());
 			// Open the preview pane.
 			drawerLayout.openDrawer(leftDrawer);
 		}
@@ -294,9 +292,7 @@ public class MainActivity extends Activity {
 	 */
 	private void loadImage() {
 		// Load the bitmap into the Bootscreen object
-		bootscreen = new Bootscreen(parent);
-		// Assign the bitmap to an ImageView in this Layout
-		previewView.setImageBitmap(bootscreen.getBitmap());
+		bootscreen = new Bootscreen(parent, previewView);
 	}
 
 	/**

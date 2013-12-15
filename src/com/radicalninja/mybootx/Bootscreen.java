@@ -10,7 +10,6 @@ import com.stericson.RootTools.execution.Command;
 import com.ultrasonic.android.image.bitmap.util.AndroidBmpUtil;
 
 import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
@@ -18,11 +17,14 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.os.Environment;
 import android.util.Log;
+import android.widget.ImageView;
 
 public class Bootscreen extends Canvas {
 	
 	private Context mContext;
+	private ImageView mParentView;
 	
 	private Bitmap originalState;
 	private Bitmap workingCopy;
@@ -36,13 +38,17 @@ public class Bootscreen extends Canvas {
 	private static final String LOG_TAG = "Bootscreen";
 	
 	/**
-	 * Constructor method that takes only the active application Context object. The Bitmaps are initialized to the DEVICE_BACKUP file.
+	 * Constructor method that takes the active application Context object and an ImageView that will be used to preview the Bootscreen. The Bitmaps are initialized to the DEVICE_BACKUP file.
+	 * 
 	 * @param context The current application Context object.
+	 * @param parentView The parent ImageView object that the bootscreen will be used to preview with.
 	 */
-	public Bootscreen(Context context) {
+	public Bootscreen(Context context, ImageView parentView) {
 		
-		// Storing the application context.
+		super();
+		// Storing the application context & parent view variables.
 		mContext = context;
+		mParentView = parentView;
 		// Setting the filePrefixDirectory variable.
 		File prefixDir;
 		try {
@@ -57,8 +63,7 @@ public class Bootscreen extends Canvas {
 		// Backing up this bitmap for easy reverting.
 		originalState = bitmapFromDeviceBackup(true);
 		// Creating a self-contained working copy Bitmap
-		workingCopy = originalState.copy(originalState.getConfig(), true);
-		this.setBitmap(workingCopy);
+		setWorkingBitmap(originalState.copy(originalState.getConfig(), true));
 		// Creating the painter and initializing the default settings.
 		painter = new Paint();
 		painter.setAntiAlias(true);
@@ -69,21 +74,25 @@ public class Bootscreen extends Canvas {
 	
 	/**
 	 * Constructor method that accepts a Bitmap object. The originalState & workingCopy member Bitmap objects get set to this given Bitmap object.
+	 * 
 	 * @param bitmap The given bitmap object to initialize the canvas with.
 	 * @param context The app's active Context object to utilize with member method operations.
+	 * @param parentView The parent ImageView object that the bootscreen will be used to preview with.
 	 */
-	public Bootscreen(Bitmap bitmap, Context context) {
+	public Bootscreen(Bitmap bitmap, Context context, ImageView parentView) {
 		
-		// Storing the application context.
+		super(bitmap);
+		// Storing the application context & parent view variables.
 		mContext = context;
+		mParentView = parentView;
 		// Setting the filePrefixDirectory variable.
+		//TODO: Copy the try'catch from previous constructor.
 		File prefixDir = (mContext.getExternalFilesDir(null) != null) ? mContext.getExternalFilesDir(null) : mContext.getFilesDir();
 		filePrefixDirectory = prefixDir.toString();
 		// Backing up this bitmap for easy reverting.
 		originalState = bitmap.copy(bitmap.getConfig(), false);
 		// Creating a self-contained working copy Bitmap
-		workingCopy = bitmap.copy(bitmap.getConfig(), true);
-		this.setBitmap(workingCopy);
+		setWorkingBitmap(bitmap.copy(bitmap.getConfig(), true));
 		// Creating the painter and initializing the default settings.
 		painter = new Paint();
 		painter.setAntiAlias(true);
@@ -106,8 +115,7 @@ public class Bootscreen extends Canvas {
 	 */
 	public void resetBitmap() {
 		
-		workingCopy = originalState.copy(originalState.getConfig(), true);
-		this.setBitmap(workingCopy);
+		setWorkingBitmap(originalState.copy(originalState.getConfig(), true));
 	}
 	
 	/**
@@ -117,6 +125,45 @@ public class Bootscreen extends Canvas {
 	public void setColor(int color) {
 		
 		painter.setColor(color);
+	}
+	
+	/**
+	 * Set's the Bootscreen's active bitmap to draw in to. If a parent ImageView object is set, redraw the view.
+	 * 
+	 * `Specify a bitmap for the canvas to draw into. All canvas state such as layers, filters, and the save/restore stack are reset with the exception of the current matrix and clip stack. Additionally, as a side-effect the canvas' target density is updated to match that of the bitmap.`
+	 * 
+	 * @param bitmap The given mutable Bitmap object. 
+	 */
+	@Override
+	public void setBitmap(Bitmap bitmap) {
+		
+		super.setBitmap(bitmap);
+		if (mParentView != null) {
+			mParentView.setImageBitmap(bitmap);
+		}
+	}
+	
+	/**
+	 * Set's the Bootscreen's active working copy bitmap object as well as the Bootscreen's active bitmap to draw in to. If a parent ImageView object is set, redraw the view.
+	 * 
+	 * @param bitmap The given mutable Bitmap object.
+	 */
+	public void setWorkingBitmap(Bitmap bitmap) {
+		
+		workingCopy = bitmap;
+		super.setBitmap(workingCopy);
+		if (mParentView != null) {
+			mParentView.setImageBitmap(workingCopy);
+		}
+	}
+	
+	/**
+	 * Set's a parent view object for self-refreshing, if desired.
+	 * @param parent The givent parent view object.
+	 */
+	public void setParentView(ImageView parent) {
+		
+		mParentView = parent;
 	}
 	
 	/**
@@ -150,6 +197,19 @@ public class Bootscreen extends Canvas {
 			float y = this.getHeight() * 0.8f;
 			
 			this.drawText(message, x, y, painter);
+		}
+	}
+	
+	/**
+	 * Personalize the workingCopy bitmap with the given message string and redraw the parent view.
+	 * 
+	 * @param message The given message string.
+	 */
+	public void doPersonalizationAndRedraw(String message) {
+		
+		doPersonalization(message);
+		if (mParentView != null) {
+			mParentView.setImageBitmap(workingCopy);
 		}
 	}
 	
@@ -206,8 +266,7 @@ public class Bootscreen extends Canvas {
 					// Grabbing the now-completely backed up DEVICE_BACKUP file.
 					originalState = BitmapFactory.decodeFile(filePrefixDirectory+"/"+FILENAME_DEVICE_BACKUP);
 					// Creating a self-contained working copy Bitmap
-					workingCopy = originalState.copy(originalState.getConfig(), true);
-					setBitmap(workingCopy);
+					setWorkingBitmap(originalState.copy(originalState.getConfig(), true));
 				}
 
 				@Override

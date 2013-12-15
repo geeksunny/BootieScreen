@@ -44,11 +44,16 @@ public class Bootscreen extends Canvas {
 		// Storing the application context.
 		mContext = context;
 		// Setting the filePrefixDirectory variable.
-		//File prefixDir = (mContext.getExternalFilesDir(null) != null) ? mContext.getExternalFilesDir(null) : mContext.getFilesDir();
-		File prefixDir = mContext.getExternalFilesDir(null);	// Temp. fix for bugs listed below.
+		File prefixDir;
+		try {
+			prefixDir = mContext.getExternalFilesDir(null);
+		} catch (java.lang.NullPointerException e) {
+			Log.e(LOG_TAG, "The external storage folder could not be accessed! Make sure you aren't creating this Bootscreen from withing Activity.onCreate()!");
+			Log.i(LOG_TAG, "External Storage State: "+Environment.getExternalStorageState());
+			prefixDir = mContext.getFilesDir();
+			//TODO: Bug-If the filePrefixDirectory is pointing at /data/data/..., all of my File objects that reference the raw filepath will fail with EACCES (Permission denied). Re-write these calls to respect permissions properly.
+		}
 		filePrefixDirectory = prefixDir.toString();
-		//TODO: Bug-If the /sdcard/Android/data/... directory is missing at app's first launch (i.e fresh install / data wiped) then it see's this as a sign to use /data/data/...
-		//TODO: Bug-If the filePrefixDirectory is pointing at /data/data/..., all of my File objects that reference the raw filepath will fail with EACCES (Permission denied). Re-write these calls to respect permissions properly.
 		// Backing up this bitmap for easy reverting.
 		originalState = bitmapFromDeviceBackup(true);
 		// Creating a self-contained working copy Bitmap

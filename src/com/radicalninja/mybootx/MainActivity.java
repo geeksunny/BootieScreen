@@ -114,7 +114,12 @@ public class MainActivity extends Activity {
 		// - Text Color
 		textColor = settings.getInt("inputTextColor", Color.BLACK);
 		textColorPickerPreview.setBackgroundColor(textColor);
-
+	}
+	
+	@Override
+	public void onStart() {
+		
+		super.onStart();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage();
 	}

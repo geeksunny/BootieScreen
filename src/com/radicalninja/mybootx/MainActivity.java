@@ -3,8 +3,6 @@ package com.radicalninja.mybootx;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.stericson.RootTools.RootTools;
-
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -182,8 +180,8 @@ public class MainActivity extends Activity {
 				public void onClick(DialogInterface dialog, int which) {
 					switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
-						// YES (success)
-						RootTools.restartAndroid();
+						// YES (Success)
+						RootHelper.restartDevice();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// NO (Success)

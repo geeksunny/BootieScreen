@@ -356,7 +356,6 @@ public class Bootscreen extends Canvas {
 				e.printStackTrace();
 			}
 		} else {
-			//TODO: Present an AlertDialog notifying the user that the app did not recieve root rights.
 			Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
 			// TODO: Move all of this code into its own method that can have callback objects passed in to it. Reference it here and in the other method just like this above.
 			AlertDialog.Builder builder = new AlertDialog.Builder(mContext)

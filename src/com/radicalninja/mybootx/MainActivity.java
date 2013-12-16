@@ -32,6 +32,8 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
 	// TODO Add code that checks build.prop for device name and force quit if user does not have Moto X (Or other possibly compatible devices, like the mini or G maybe?)
+	// TODO Go through and standardize Javadoc comments.
+	// TODO Review project's object code organization and variable privileges.
 	final MainActivity parent = this;
 	private static final String LOG_TAG = "MainActivity";
 	private static final String PREFS_NAME = "BootscreenPrefs";
@@ -85,7 +87,7 @@ public class MainActivity extends Activity {
 			}
 		});
 		// - Color Selection (PICKER)
-		// TODO: Investigate the possibility / benefits / detremints to stuffing the color well + button into part of ColorPickerDialogBuilder and make it a more universal widget package.
+		// TODO: Investigate the possibility / benefits / detriments to stuffing the color well + button into part of ColorPickerDialogBuilder and make it a more universal widget package.
 		buttonColorPicker = (Button) findViewById(R.id.buttonColorPicker);
 		buttonColorPicker.setOnClickListener(colorPicker);
 		textColorPickerPreview = (TextView) findViewById(R.id.textColorPickerPreview);
@@ -269,7 +271,11 @@ public class MainActivity extends Activity {
 		}
 	 };
 	 
-	 public void updateTextColor(int color) {
+	 /**
+	  * Update the color well's value.
+	  * @param color The given color value.
+	  */
+	 private void updateTextColor(int color) {
 		 textColor = color;
 		 textColorPickerPreview.setBackgroundColor(color);
 	 }

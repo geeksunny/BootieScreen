@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 public class ColorDialogBuilder extends Builder {
-	// TODO: Fix up styling on ColorPickerBuilder's layout and alert dialog. Buttons should blend in with picker. Picker should have more padding between it and outer edge of the surrounding alert dialog.
 	
 	private static final String LOG_TAG = "ColorDialogBuilder";
 	

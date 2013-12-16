@@ -386,6 +386,78 @@ public class Bootscreen extends Canvas {
 	}
 	
 	/**
+	 * Pushes the DEVICE_BACKUP .bmp file to the clogo block device!
+	 */
+	public boolean restoreDeviceOriginalBootscreen(final AlertDialog.Builder successHandlingAlertDialogBuilder, final AlertDialog.Builder failureHandlingAlertDialogBuilder) {
+		
+		// Last-minute verification that the DEVICE_BACKUP file does indeed exist. We don't want to attempt to write any weird null data to the block device!
+		if (!fileExists(FILENAME_DEVICE_BACKUP)) {
+			Log.e(LOG_TAG, "CHOKE! We somehow have gotten to the restoreDeviceOriginalBootscreen() stage and don't have an original to restore... How did this happen?");
+			return false;
+		}
+		// Checking for Root access.
+		if (RootTools.isAccessGiven()) {
+			Log.i(LOG_TAG, "Root granted! About to PUSH bitmap...");
+			String cmd = String.format("dd if=%s/%s of=/dev/block/platform/msm_sdcc.1/by-name/clogo", filePrefixDirectory, FILENAME_DEVICE_BACKUP);
+			Log.i(LOG_TAG, "About to run this command...");
+			Log.i(LOG_TAG, cmd);
+			Command command = new Command(0, cmd) {
+
+				@Override
+				public void commandCompleted(int arg0, int arg1) {
+					successHandlingAlertDialogBuilder.show();
+				}
+
+				@Override
+				public void commandOutput(int id, String line) {
+					if (id == 0) {
+						Log.i(LOG_TAG, "Command finished! This is the output!");
+					}
+					Log.i(LOG_TAG, id+": "+line);
+				}
+
+				@Override
+				public void commandTerminated(int arg0, String arg1) {
+					failureHandlingAlertDialogBuilder.show();
+				}
+			};
+			try {
+				RootTools.getShell(true).add(command);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				Log.i(LOG_TAG, "IOException!!");
+				e.printStackTrace();
+			} catch (TimeoutException e) {
+				// TODO Auto-generated catch block
+				Log.i(LOG_TAG, "TimeoutException!!");
+				e.printStackTrace();
+			} catch (RootDeniedException e) {
+				// TODO Auto-generated catch block
+				Log.i(LOG_TAG, "RootDeniedException!!");
+				e.printStackTrace();
+			}
+		} else {
+			Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
+			AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
+												.setCancelable(true)
+												.setTitle("Root is required!")
+												.setMessage("The app was not able to get the root privileges!")
+												.setInverseBackgroundForced(true);
+			builder.setNeutralButton("Ok.", new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					Log.i(LOG_TAG, "Could not restore DEVICE_BACKUP due to lack of root privileges.");
+				}
+			});
+			builder.create().show();
+			return false;
+		}
+		
+		return true;
+	}
+	
+	/**
 	 * Checks the application's data directory for a given filename.
 	 * @param filename The given filename to look for in application's data directory.
 	 * @return Returns true if given filename exists, false otherwise.

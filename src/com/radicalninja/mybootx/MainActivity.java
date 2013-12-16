@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
@@ -146,6 +147,18 @@ public class MainActivity extends Activity {
 		// TODO: Build out the settings of this app.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle menu item selection
+		switch (item.getItemId()) {
+		case R.id.action_restoreBackup:
+			// TODO: Write a method that holds basically the same code from saveButtonClicked.onClick(). Interfaces with Bootscreen.restoreDeviceOriginalBootscreen(). 
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 	}
 
 	/**

@@ -115,6 +115,8 @@ public class MainActivity extends Activity {
 		// - Text Color
 		textColor = settings.getInt("inputTextColor", Color.BLACK);
 		textColorPickerPreview.setBackgroundColor(textColor);
+		// - Typeface
+		inputTypeface.setSelection(settings.getInt("inputTypefacePos", 3));
 	}
 	
 	@Override
@@ -138,6 +140,8 @@ public class MainActivity extends Activity {
 		editor.putInt("inputFontSize", (int) getFontSize());
 		// - Text Color
 		editor.putInt("inputTextColor", textColor);
+		// - Typeface
+		editor.putInt("inputTypefacePos", inputTypeface.getSelectedItemPosition());
 		// Commit new settings
 		editor.commit();
 
@@ -289,7 +293,7 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * Get integer value for the current selected typeface
+	 * Get the Typeface object for the current selected typeface
 	 */
 	private Typeface getTypeface() {
 		//TODO: Change this from a Spinner to a radio selection group, and each option shows a preview of the typeface.

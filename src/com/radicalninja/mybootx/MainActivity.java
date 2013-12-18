@@ -160,7 +160,64 @@ public class MainActivity extends Activity {
 		// Handle menu item selection
 		switch (item.getItemId()) {
 		case R.id.action_restoreBackup:
-			// TODO: Write a method that holds basically the same code from saveButtonClicked.onClick(). Interfaces with Bootscreen.restoreDeviceOriginalBootscreen(). 
+			
+			// AlertDialogs for handling the result of the installation procedure.
+			DialogInterface.OnClickListener handleRestorationOutcome = new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					switch (which) {
+					case DialogInterface.BUTTON_POSITIVE:
+						// YES (Success)
+						RootHelper.restartDevice();
+						break;
+					case DialogInterface.BUTTON_NEGATIVE:
+						// NO (Success)
+						Toast.makeText(parent, "Restoration SUCCESS!", Toast.LENGTH_SHORT).show();
+						break;
+					case DialogInterface.BUTTON_NEUTRAL:
+						// NEUTRAL (Failure)
+						Toast.makeText(parent, "Restoration FAILURE!", Toast.LENGTH_SHORT).show();
+						break;
+					}
+				}
+			};
+			// - SUCCESSFUL INSTALLTION AlertDialog
+			final AlertDialog.Builder handleRestorationSuccess = new AlertDialog.Builder(parent);
+			handleRestorationSuccess
+				.setMessage("Your device's original bootscreen was successfully installed! Would you like to reboot now and test it out?")
+				.setPositiveButton("Yes", handleRestorationOutcome)
+				.setNegativeButton("No", handleRestorationOutcome);
+			// - FAILED INSTALLATION AlertDialog
+			final AlertDialog.Builder handleRestorationFailure = new AlertDialog.Builder(parent);
+			handleRestorationFailure
+				.setMessage("Unfortunately it looks like your bootscreen could not be installed! Check the logs and submit a bug report or try again later!")
+				.setNeutralButton("Ok", handleRestorationOutcome);
+			
+			// AlertDialog for proceeding with the bootscreen installation.
+			DialogInterface.OnClickListener doRestoration = new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					switch (which) {
+					case DialogInterface.BUTTON_POSITIVE:
+						// Yes button clicked
+						saveSettings();
+						bootscreen.restoreDeviceOriginalBootscreen(handleRestorationSuccess, handleRestorationFailure);
+						break;
+					case DialogInterface.BUTTON_NEGATIVE:
+						// No button clicked
+						Toast.makeText(parent, "Restoration was CANCELLED!", Toast.LENGTH_SHORT).show();
+						break;
+					}
+				}
+			};
+			AlertDialog.Builder doInstallationDialog = new AlertDialog.Builder(parent);
+			doInstallationDialog
+				.setMessage("This will write your Device's original bootscreen to your phone's clogo block device. ARE YOU SURE YOU WANT TO DO THIS?")
+				.setPositiveButton("Yes", doRestoration)
+				.setNegativeButton("No", doRestoration)
+				.show();
+
+			
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

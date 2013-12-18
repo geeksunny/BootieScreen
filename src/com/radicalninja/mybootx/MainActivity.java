@@ -116,7 +116,7 @@ public class MainActivity extends Activity {
 		textColor = settings.getInt("inputTextColor", Color.BLACK);
 		textColorPickerPreview.setBackgroundColor(textColor);
 		// - Typeface
-		int inputTypefacePos = settings.getInt("inputTypefacePos", 3);
+		int inputTypefacePos = settings.getInt("inputTypefacePos", 1);
 		if (inputTypeface.getCount() >= inputTypefacePos) {
 			// Ensures that we don't try to select an item outside the list's bounds. Should probably be handled by a try / catch?
 			inputTypeface.setSelection(inputTypefacePos);			
@@ -360,11 +360,10 @@ public class MainActivity extends Activity {
 		//TODO: Change this from a Spinner to a radio selection group, and each option shows a preview of the typeface.
 		
 		Map<String, Typeface> typefaceMap = new HashMap<String, Typeface>();
-		typefaceMap.put("DEFAULT", Typeface.DEFAULT);
-		typefaceMap.put("DEFAULT_BOLD", Typeface.DEFAULT_BOLD);
-		typefaceMap.put("MONOSPACE", Typeface.MONOSPACE);
-		typefaceMap.put("SANS_SERIF", Typeface.SANS_SERIF);
-		typefaceMap.put("SERIF", Typeface.SERIF);
+		typefaceMap.put("Sans Serif", Typeface.DEFAULT);
+		typefaceMap.put("Sans Serif, Bold", Typeface.DEFAULT_BOLD);
+		typefaceMap.put("Monospace", Typeface.MONOSPACE);
+		typefaceMap.put("Serif", Typeface.SERIF);
 		
 		return typefaceMap.get((String) inputTypeface.getAdapter().getItem(inputTypeface.getSelectedItemPosition()));
 	}

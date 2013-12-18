@@ -11,11 +11,10 @@
     <string name="buttonPreviewLabel">Show Preview</string>
     <string name="buttonSaveLabel">Personalize Bootscreen</string>
     <string-array name="inputTypeface">
-        <item >DEFAULT</item>
-        <item >DEFAULT_BOLD</item>
-        <item >MONOSPACE</item>
-        <item >SANS_SERIF</item>
-        <item >SERIF</item>
+        <item >Sans Serif</item>
+        <item >Sans Serif, Bold</item>
+        <item >Monospace</item>
+        <item >Serif</item>
     </string-array>
     <string-array name="inputColor">
         <item >BLACK</item>

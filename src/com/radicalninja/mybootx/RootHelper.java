@@ -24,7 +24,7 @@ public final class RootHelper {
 
 				@Override
 				public void commandCompleted(int id, int exitCode) {
-					Log.w(LOG_TAG, "Reboot command completed! If you're seeing this, something probably didn't work right.");
+					Log.w(LOG_TAG, "Reboot command completed! If your device doesn't rebooted in the next few seconds, something probably didn't work right.");
 				}
 
 				@Override
@@ -65,7 +65,7 @@ public final class RootHelper {
 
 				@Override
 				public void commandCompleted(int id, int exitCode) {
-					Log.w(LOG_TAG, "Halt command completed! If you're seeing this, something probably didn't work right.");
+					Log.w(LOG_TAG, "Halt command completed! If your device doesn't shut off in the next few seconds,  something probably didn't work right.");
 				}
 
 				@Override

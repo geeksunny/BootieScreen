@@ -306,8 +306,11 @@ public class Bootscreen extends Canvas {
 	
 	/**
 	 * Pushes the WORKING_COPY .bmp file to the clogo block device!
+	 * TODO: Update this documentation
 	 */
-	public boolean pushBootscreenToDevice(final AlertDialog.Builder successHandlingAlertDialogBuilder, final AlertDialog.Builder failureHandlingAlertDialogBuilder) {
+	public boolean pushBootscreenToDevice(final AlertDialog.Builder successHandlingAlertDialogBuilder,
+											final AlertDialog.Builder failureHandlingAlertDialogBuilder,
+											final DialogInterface.OnDismissListener ifNoRootDismissListener) {
 		
 		// Last-minute verification that the WORKING_COPY file does indeed exist. We don't want to attempt to write any weird null data to the block device!
 		if (!fileExists(FILENAME_WORKING_COPY)) {
@@ -357,26 +360,13 @@ public class Bootscreen extends Canvas {
 			}
 		} else {
 			Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
-			// TODO: Move all of this code into its own method that can have callback objects passed in to it. Reference it here and in the other method just like this above.
 			AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
 												.setCancelable(true)
 												.setTitle("Root is required!")
-												.setMessage("The app was not able to get the root privileges! Do you want to try again?")
+												.setMessage("The app was not able to get the root privileges!")
 												.setInverseBackgroundForced(true);
-			builder.setPositiveButton("Yes, Try Again.", new DialogInterface.OnClickListener() {
-				
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					// TODO: Rewrite the bitmap method in a manner that can be started over from the start. Call that method here.
-				}
-			});
-			builder.setNegativeButton("No, exit the program.", new DialogInterface.OnClickListener() {
-				
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					// TODO: reset app back to a position that can be attempting to pull the bitmap again, and push it to the system background.
-				}
-			});
+			builder.setOnDismissListener(ifNoRootDismissListener);
+			builder.setNeutralButton("Ok.", null);
 			builder.create().show();
 			return false;
 		}
@@ -527,7 +517,9 @@ public class Bootscreen extends Canvas {
 		return Bitmap.createBitmap(BOOTSCREEN_RESOLUTION_WIDTH, BOOTSCREEN_RESOLUTION_HEIGHT, Bitmap.Config.ARGB_8888);
 	}
 	
-	public boolean installPersonalizedBootscreen(AlertDialog.Builder successHandlingAlertDialogBuilder, AlertDialog.Builder failureHandlingAlertDialogBuilder) {
+	public boolean installPersonalizedBootscreen(AlertDialog.Builder successHandlingAlertDialogBuilder,
+													AlertDialog.Builder failureHandlingAlertDialogBuilder,
+													DialogInterface.OnDismissListener ifNoRootDismissListener) {
 		
 		/*
 		 * Proposed timeline: (Some of this hapens outside of this method)
@@ -537,7 +529,7 @@ public class Bootscreen extends Canvas {
 		 */
 		if (saveBitmap()) {
 			Log.i(LOG_TAG, "Bitmap saved to disk! Now attempting to write it to the block device.");
-			if (!pushBootscreenToDevice(successHandlingAlertDialogBuilder, failureHandlingAlertDialogBuilder)) {
+			if (!pushBootscreenToDevice(successHandlingAlertDialogBuilder, failureHandlingAlertDialogBuilder, ifNoRootDismissListener)) {
 				Log.e(LOG_TAG, "Looks like something didn't work on the installation! Check further up in the log for related details!");
 				failureHandlingAlertDialogBuilder.show();
 				return false;

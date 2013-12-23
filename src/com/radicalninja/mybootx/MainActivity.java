@@ -196,6 +196,15 @@ public class MainActivity extends Activity {
 			handleRestorationFailure
 				.setMessage("Unfortunately it looks like your bootscreen could not be installed! Check the logs and submit a bug report or try again later!")
 				.setNeutralButton("Ok", handleRestorationOutcome);
+			// - NO ROOT OnDismissListener
+			final DialogInterface.OnDismissListener handleNoRootRights = new DialogInterface.OnDismissListener() {
+				
+				@Override
+				public void onDismiss(DialogInterface dialog) {
+					Toast.makeText(parent, "Could not get Root rights!", Toast.LENGTH_SHORT).show();
+					//drawerLayout.closeDrawer(leftDrawer);
+				}
+			};
 			
 			// AlertDialog for proceeding with the bootscreen installation.
 			DialogInterface.OnClickListener doRestoration = new DialogInterface.OnClickListener() {
@@ -205,7 +214,7 @@ public class MainActivity extends Activity {
 					case DialogInterface.BUTTON_POSITIVE:
 						// Yes button clicked
 						saveSettings();
-						bootscreen.restoreDeviceOriginalBootscreen(handleRestorationSuccess, handleRestorationFailure);
+						bootscreen.restoreDeviceOriginalBootscreen(handleRestorationSuccess, handleRestorationFailure, handleNoRootRights);
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// No button clicked

@@ -9,6 +9,7 @@ import com.stericson.RootTools.exceptions.RootDeniedException;
 import com.stericson.RootTools.execution.Command;
 import com.ultrasonic.android.image.bitmap.util.AndroidBmpUtil;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -296,8 +297,24 @@ public class Bootscreen extends Canvas {
 				e.printStackTrace();
 			}
 		} else {
-			//TODO: Present an AlertDialog notifying the user that the app did not recieve root rights.
 			Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
+			DialogInterface.OnDismissListener ifNoRootDismissListener =
+					new DialogInterface.OnDismissListener() {
+						
+						@Override
+						public void onDismiss(DialogInterface dialog) {
+							Activity activity = (Activity) mContext;
+							activity.moveTaskToBack(true);
+						}
+					};
+			AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
+												.setCancelable(true)
+												.setTitle("Root is required!")
+												.setMessage("The app was not able to get the root privileges!")
+												.setInverseBackgroundForced(true);
+			builder.setOnDismissListener(ifNoRootDismissListener);
+			builder.setNeutralButton("Ok.", null);
+			builder.create().show();
 			return false;
 		}
 		
@@ -377,7 +394,9 @@ public class Bootscreen extends Canvas {
 	/**
 	 * Pushes the DEVICE_BACKUP .bmp file to the clogo block device!
 	 */
-	public boolean restoreDeviceOriginalBootscreen(final AlertDialog.Builder successHandlingAlertDialogBuilder, final AlertDialog.Builder failureHandlingAlertDialogBuilder) {
+	public boolean restoreDeviceOriginalBootscreen(final AlertDialog.Builder successHandlingAlertDialogBuilder,
+													final AlertDialog.Builder failureHandlingAlertDialogBuilder,
+													final DialogInterface.OnDismissListener ifNoRootDismissListener) {
 		
 		// Last-minute verification that the DEVICE_BACKUP file does indeed exist. We don't want to attempt to write any weird null data to the block device!
 		if (!fileExists(FILENAME_DEVICE_BACKUP)) {
@@ -432,13 +451,8 @@ public class Bootscreen extends Canvas {
 												.setTitle("Root is required!")
 												.setMessage("The app was not able to get the root privileges!")
 												.setInverseBackgroundForced(true);
-			builder.setNeutralButton("Ok.", new DialogInterface.OnClickListener() {
-				
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					Log.i(LOG_TAG, "Could not restore DEVICE_BACKUP due to lack of root privileges.");
-				}
-			});
+			builder.setOnDismissListener(ifNoRootDismissListener);
+			builder.setNeutralButton("Ok.", null);
 			builder.create().show();
 			return false;
 		}

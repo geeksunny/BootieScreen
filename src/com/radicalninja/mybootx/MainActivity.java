@@ -116,7 +116,7 @@ public class MainActivity extends Activity {
 		textColor = settings.getInt("inputTextColor", Color.BLACK);
 		textColorPickerPreview.setBackgroundColor(textColor);
 		// - Typeface
-		int inputTypefacePos = settings.getInt("inputTypefacePos", 1);
+		int inputTypefacePos = settings.getInt("inputTypefacePos", 0);
 		if (inputTypeface.getCount() >= inputTypefacePos) {
 			// Ensures that we don't try to select an item outside the list's bounds. Should probably be handled by a try / catch?
 			inputTypeface.setSelection(inputTypefacePos);			

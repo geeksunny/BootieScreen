@@ -519,8 +519,9 @@ public class Bootscreen extends Canvas {
 				}
 			}
 		}
-		// If we've somehow managed to get here, we probably deserve a null return value.
-		return null;
+		// If we've somehow managed to get here, return an empty bitmap.
+		Log.e(LOG_TAG, "bitmapFromDeviceBackup() FAIL STATE!");
+		return createEmptyBitmap();
 	}
 	
 	/**

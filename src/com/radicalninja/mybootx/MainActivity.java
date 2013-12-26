@@ -136,8 +136,7 @@ public class MainActivity extends Activity {
 	 */
 	public void saveSettings() {
 		// Saved Preferences & Editor
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		SharedPreferences.Editor editor = settings.edit();
+		SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, 0).edit();
 		// - Personal Message
 		editor.putString("inputMessage", inputMessage.getText().toString());
 		// - Font Size
@@ -156,6 +155,9 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		// TODO: Build out the settings of this app.
 		getMenuInflater().inflate(R.menu.main, menu);
+		if (!getSharedPreferences(PREFS_NAME, 0).getBoolean("bootscreenIsCustomized", false)) {
+			menu.findItem(R.id.action_restoreBackup).setEnabled(false);
+		}
 		return true;
 	}
 	
@@ -172,11 +174,14 @@ public class MainActivity extends Activity {
 					switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						// YES (Success)
+						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", false).commit();
 						RootHelper.restartDevice();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// NO (Success)
 						Toast.makeText(parent, "Restoration SUCCESS!", Toast.LENGTH_SHORT).show();
+						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", false).commit();
+						invalidateOptionsMenu();
 						break;
 					case DialogInterface.BUTTON_NEUTRAL:
 						// NEUTRAL (Failure)
@@ -270,11 +275,14 @@ public class MainActivity extends Activity {
 					switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						// YES (Success)
+						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", true).commit();
 						RootHelper.restartDevice();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// NO (Success)
 						Toast.makeText(parent, "Installation SUCCESS!", Toast.LENGTH_SHORT).show();
+						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", true).commit();
+						invalidateOptionsMenu();
 						drawerLayout.closeDrawer(leftDrawer);
 						break;
 					case DialogInterface.BUTTON_NEUTRAL:

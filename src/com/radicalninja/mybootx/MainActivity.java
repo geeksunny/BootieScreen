@@ -124,9 +124,9 @@ public class MainActivity extends Activity {
 	}
 	
 	@Override
-	public void onResume() {
+	public void onStart() {
 		
-		super.onResume();
+		super.onStart();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage();
 	}

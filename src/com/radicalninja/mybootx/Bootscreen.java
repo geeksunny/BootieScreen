@@ -160,7 +160,7 @@ public class Bootscreen extends Canvas {
 	
 	/**
 	 * Set's a parent view object for self-refreshing, if desired.
-	 * @param parent The givent parent view object.
+	 * @param parent The given parent view object.
 	 */
 	public void setParentView(ImageView parent) {
 		

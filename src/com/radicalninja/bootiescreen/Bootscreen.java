@@ -52,6 +52,8 @@ public class Bootscreen extends Canvas {
 		mContext = context;
 		mParentView = parentView;
 		// Setting the filePrefixDirectory variable.
+		//TODO: Clean up the new /sdcard/ hard-coding with exception protection.
+		/*
 		File prefixDir;
 		try {
 			prefixDir = mContext.getExternalFilesDir(null);
@@ -62,6 +64,22 @@ public class Bootscreen extends Canvas {
 			//TODO: Bug-If the filePrefixDirectory is pointing at /data/data/..., all of my File objects that reference the raw filepath will fail with EACCES (Permission denied). Re-write these calls to respect permissions properly.
 		}
 		filePrefixDirectory = prefixDir.toString();
+		*/
+		filePrefixDirectory = "/sdcard/BootieScreen";
+		Log.i(LOG_TAG, "Checking if directory exists on sdcard...");
+		if (fileExists("")) {
+			Log.i(LOG_TAG, "Good news, everyone! The directory exists on sdcard!");
+		} else {
+			Log.w(LOG_TAG, "Directory does not exist on sdcard -- Creating it now!");
+			File dataDir = new File(filePrefixDirectory);
+			dataDir.mkdirs();
+			if (fileExists("")) {
+				Log.i(LOG_TAG, "Directory was successfully created!");
+			} else {
+				Log.e(LOG_TAG, "Directory couldn't be created! Prepare to crash and burn!");
+				// TODO: Handle this case properly and protect from crash.
+			}
+		}
 		// Backing up this bitmap for easy reverting.
 		originalState = bitmapFromDeviceBackup(true);
 		// Creating a self-contained working copy Bitmap
@@ -398,7 +416,7 @@ public class Bootscreen extends Canvas {
 	public boolean restoreDeviceOriginalBootscreen(final AlertDialog.Builder successHandlingAlertDialogBuilder,
 													final AlertDialog.Builder failureHandlingAlertDialogBuilder,
 													final DialogInterface.OnDismissListener ifNoRootDismissListener) {
-		
+		//TODO: upon successful restoration, reset all the interface controls to the default empty state. Save changes to PREFS.
 		// Last-minute verification that the DEVICE_BACKUP file does indeed exist. We don't want to attempt to write any weird null data to the block device!
 		if (!fileExists(FILENAME_DEVICE_BACKUP)) {
 			Log.e(LOG_TAG, "CHOKE! We somehow have gotten to the restoreDeviceOriginalBootscreen() stage and don't have an original to restore... How did this happen?");

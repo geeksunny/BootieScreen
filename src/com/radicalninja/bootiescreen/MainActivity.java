@@ -1,4 +1,4 @@
-package com.radicalninja.mybootx;
+package com.radicalninja.bootiescreen;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -129,6 +129,14 @@ public class MainActivity extends Activity {
 		super.onStart();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage();
+	}
+	
+	@Override
+	public void onResume() {
+		
+		super.onResume();
+		// Reset bitmap to original state.
+		//bootscreen.
 	}
 	
 	/**

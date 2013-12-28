@@ -1,4 +1,4 @@
-package com.radicalninja.mybootx;
+package com.radicalninja.bootiescreen;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +24,7 @@ import android.widget.ImageView;
 
 public class Bootscreen extends Canvas {
 	
+	// TODO: Fix up noRootRights messages to be more descriptive.
 	private Context mContext;
 	private ImageView mParentView;
 	

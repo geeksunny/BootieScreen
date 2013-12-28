@@ -1,4 +1,4 @@
-package com.radicalninja.mybootx;
+package com.radicalninja.bootiescreen;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;

@@ -1,4 +1,4 @@
-package com.radicalninja.mybootx;
+package com.radicalninja.bootiescreen;
 
 import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.OpacityBar;

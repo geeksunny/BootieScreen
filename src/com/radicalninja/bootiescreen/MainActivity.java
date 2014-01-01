@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.os.Bundle;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -11,6 +12,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -66,8 +68,34 @@ public class MainActivity extends Activity {
 		leftDrawer = (FrameLayout) findViewById(R.id.left_drawer);
 		View bootPreview = factory.inflate(R.layout.boot_preview, null);
 		leftDrawer.addView(bootPreview);
-		// Spinner lists and other controls
+		// Navigation Drawer Layout
+		ActionBar actionBar = getActionBar();
+		actionBar.setDisplayHomeAsUpEnabled(true);
+		actionBar.setHomeButtonEnabled(true);
 		drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		final ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
+				this,
+				drawerLayout,
+				R.drawable.ic_navigation_drawer,
+				R.string.actionBarContentOpen,
+				R.string.actionBarContentClose) {
+			
+			public void onDrawerClosed(View drawerView) {
+				invalidateOptionsMenu();
+			}
+			
+			public void onDrawerOpened(View drawerView) {
+				invalidateOptionsMenu();
+			}
+		};
+		drawerLayout.post(new Runnable() {
+			@Override
+			public void run() {
+				mDrawerToggle.syncState();
+			}
+		});
+		drawerLayout.setDrawerListener(mDrawerToggle);
+		
 		previewView = (ImageView) findViewById(R.id.imagePreview);
 		inputMessage = (EditText) findViewById(R.id.inputMessage);
 		// - Font Size Selection

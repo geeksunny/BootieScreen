@@ -29,6 +29,8 @@
         <item >WHITE</item>
         <item >YELLOW</item>
     </string-array>
+    <string name="actionBarContentOpen">Open Drawer</string>
+    <string name="actionBarContentClose">Close Drawer</string>
     
 
 </resources>

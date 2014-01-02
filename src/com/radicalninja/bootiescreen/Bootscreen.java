@@ -35,6 +35,7 @@ public class Bootscreen extends Canvas {
 	
 	private static final int BOOTSCREEN_RESOLUTION_WIDTH = 720;
 	private static final int BOOTSCREEN_RESOLUTION_HEIGHT = 1280;
+	private static final Bitmap.Config BOOTSCREEN_BITMAP_CONFIG = Bitmap.Config.ARGB_8888;
 	private static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
 	private static final String FILENAME_WORKING_COPY = "clogo.bmp";
 	private static final String LOG_TAG = "Bootscreen";
@@ -83,7 +84,7 @@ public class Bootscreen extends Canvas {
 		// Backing up this bitmap for easy reverting.
 		originalState = bitmapFromDeviceBackup(true);
 		// Creating a self-contained working copy Bitmap
-		setWorkingBitmap(originalState.copy(originalState.getConfig(), true));
+		setWorkingBitmap(originalState.copy(BOOTSCREEN_BITMAP_CONFIG, true));
 		// Creating the painter and initializing the default settings.
 		painter = new Paint();
 		painter.setAntiAlias(true);
@@ -525,7 +526,13 @@ public class Bootscreen extends Canvas {
 		
 		if (fileExists(FILENAME_DEVICE_BACKUP)) {
 			Bitmap bitmap = BitmapFactory.decodeFile(filePrefixDirectory+"/"+FILENAME_DEVICE_BACKUP);
-			return bitmap;
+			if (bitmap == null) {
+				Log.e(LOG_TAG, "Could not pull DEVICE_BACKUP from SDCard into memory!");
+				// This protects from a perpetual crash on boot, but does not solve anything! This needs to present a dialog alert or something at least...
+				return createEmptyBitmap();
+			} else {
+				return bitmap;
+			}
 		} else {
 			if (shouldPullFromDeviceIfNoneOnFile) {
 				if (pullBootscreenFromDevice(false)) {
@@ -548,7 +555,7 @@ public class Bootscreen extends Canvas {
 	 * @return Returns an empty Bitmap object at the resolution specified by the object's constants.
 	 */
 	public Bitmap createEmptyBitmap() {
-		return Bitmap.createBitmap(BOOTSCREEN_RESOLUTION_WIDTH, BOOTSCREEN_RESOLUTION_HEIGHT, Bitmap.Config.ARGB_8888);
+		return Bitmap.createBitmap(BOOTSCREEN_RESOLUTION_WIDTH, BOOTSCREEN_RESOLUTION_HEIGHT, BOOTSCREEN_BITMAP_CONFIG);
 	}
 	
 	public boolean installPersonalizedBootscreen(AlertDialog.Builder successHandlingAlertDialogBuilder,

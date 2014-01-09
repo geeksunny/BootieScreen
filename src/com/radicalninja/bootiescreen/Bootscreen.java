@@ -28,11 +28,11 @@ public class Bootscreen extends Canvas {
 	private Context mContext;
 	private ImageView mParentView;
 	
-	private Bitmap originalState;
-	private Bitmap workingCopy;
-	private Paint painter;
 	private String filePrefixDirectory;
 	
+	private Bitmap mOriginalState;
+	private Bitmap mWorkingCopy;
+	private Paint mPainter;
 	private static final int BOOTSCREEN_RESOLUTION_WIDTH = 720;
 	private static final int BOOTSCREEN_RESOLUTION_HEIGHT = 1280;
 	private static final Bitmap.Config BOOTSCREEN_BITMAP_CONFIG = Bitmap.Config.ARGB_8888;
@@ -82,15 +82,15 @@ public class Bootscreen extends Canvas {
 			}
 		}
 		// Backing up this bitmap for easy reverting.
-		originalState = bitmapFromDeviceBackup(true);
+		mOriginalState = createEmptyBitmap();
 		// Creating a self-contained working copy Bitmap
-		setWorkingBitmap(originalState.copy(BOOTSCREEN_BITMAP_CONFIG, true));
-		// Creating the painter and initializing the default settings.
-		painter = new Paint();
-		painter.setAntiAlias(true);
-		painter.setTextAlign(Paint.Align.CENTER);
-		painter.setHinting(Paint.HINTING_ON);
-		painter.setSubpixelText(true);
+		setWorkingBitmap(createEmptyBitmap());
+		// Creating the mPainter and initializing the default settings.
+		mPainter = new Paint();
+		mPainter.setAntiAlias(true);
+		mPainter.setTextAlign(Paint.Align.CENTER);
+		mPainter.setHinting(Paint.HINTING_ON);
+		mPainter.setSubpixelText(true);
 	}
 	
 	/**
@@ -111,32 +111,32 @@ public class Bootscreen extends Canvas {
 		File prefixDir = (mContext.getExternalFilesDir(null) != null) ? mContext.getExternalFilesDir(null) : mContext.getFilesDir();
 		filePrefixDirectory = prefixDir.toString();
 		// Backing up this bitmap for easy reverting.
-		originalState = bitmap.copy(bitmap.getConfig(), false);
+		mOriginalState = bitmap.copy(bitmap.getConfig(), false);
 		// Creating a self-contained working copy Bitmap
 		setWorkingBitmap(bitmap.copy(bitmap.getConfig(), true));
-		// Creating the painter and initializing the default settings.
-		painter = new Paint();
-		painter.setAntiAlias(true);
-		painter.setTextAlign(Paint.Align.CENTER);
-		painter.setHinting(Paint.HINTING_ON);
-		painter.setSubpixelText(true);
+		// Creating the mPainter and initializing the default settings.
+		mPainter = new Paint();
+		mPainter.setAntiAlias(true);
+		mPainter.setTextAlign(Paint.Align.CENTER);
+		mPainter.setHinting(Paint.HINTING_ON);
+		mPainter.setSubpixelText(true);
 	}
 	
 	/**
-	 * Getter method for accessing the current workingCopy Bitmap object.
-	 * @return Returns the bootscreen's workingCopy Bitmap object.
+	 * Getter method for accessing the current mWorkingCopy Bitmap object.
+	 * @return Returns the bootscreen's mWorkingCopy Bitmap object.
 	 */
 	public Bitmap getBitmap() {
 		
-		return workingCopy;
+		return mWorkingCopy;
 	}
 	
 	/**
-	 * Resets the bootscreen's workingCopy Bitmap object to it's originalState.
+	 * Resets the bootscreen's mWorkingCopy Bitmap object to it's mOriginalState.
 	 */
 	public void resetBitmap() {
 		
-		setWorkingBitmap(originalState.copy(originalState.getConfig(), true));
+		setWorkingBitmap(mOriginalState.copy(mOriginalState.getConfig(), true));
 	}
 	
 	/**
@@ -171,8 +171,6 @@ public class Bootscreen extends Canvas {
 	 */
 	public void setWorkingBitmap(Bitmap bitmap) {
 		
-		workingCopy = bitmap;
-		super.setBitmap(workingCopy);
 		if (mParentView != null) {
 			mParentView.setImageBitmap(workingCopy);
 		}
@@ -185,28 +183,30 @@ public class Bootscreen extends Canvas {
 	public void setParentView(ImageView parent) {
 		
 		mParentView = parent;
+		mWorkingCopy = bitmap;
+		super.setBitmap(mWorkingCopy);
 	}
 	
 	/**
-	 * Set's the bootscreen's painter object's TextSize setting to the given value.
+	 * Set's the bootscreen's mPainter object's TextSize setting to the given value.
 	 * @param size A float value for the Painter's TextSize.
 	 */
 	public void setTextSize(float size) {
 		
-		painter.setTextSize(size);
+		mPainter.setTextSize(size);
 	}
 	
 	/**
-	 * Set's the bootscreen's painter object's Typeface setting to the given Typeface object.
+	 * Set's the bootscreen's mPainter object's Typeface setting to the given Typeface object.
 	 * @param typeface The given Typeface object for the Painter's Typeface.
 	 */
 	public void setTypeface(Typeface typeface) {
 		
-		painter.setTypeface(typeface);
+		mPainter.setTypeface(typeface);
 	}
 	
 	/**
-	 * Personalize the workingCopy bitmap with the given message string.
+	 * Personalize the mWorkingCopy bitmap with the given message string.
 	 * @param message The given message string.
 	 */
 	public void doPersonalization(String message) {

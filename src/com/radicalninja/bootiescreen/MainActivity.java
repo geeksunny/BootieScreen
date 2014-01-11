@@ -43,7 +43,7 @@ public class MainActivity extends Activity {
 	DrawerLayout drawerLayout;
 	FrameLayout leftDrawer;
 	ImageView previewView;
-	Bootscreen bootscreen;
+	BootscreenHelper mBootscreenHelper;
 	
 	EditText inputMessage;
 	SeekBar inputFontSize;
@@ -255,7 +255,7 @@ public class MainActivity extends Activity {
 					case DialogInterface.BUTTON_POSITIVE:
 						// Yes button clicked
 						saveSettings();
-						bootscreen.restoreDeviceOriginalBootscreen(handleRestorationSuccess, handleRestorationFailure, handleNoRootRights);
+						mBootscreenHelper.restoreDeviceOriginalBootscreen(handleRestorationSuccess, handleRestorationFailure, handleNoRootRights);
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// No button clicked
@@ -285,13 +285,15 @@ public class MainActivity extends Activity {
 		public void onClick(View v) {
 
 			// Reset the bootscreen to its original state for a new preview.
-			bootscreen.resetBitmap();
+            mBootscreenHelper.getBootscreen().resetBitmap();
 			// Update settings for the bootscreen.
-			bootscreen.setTextSize(getFontSize());
-			bootscreen.setColor(textColor);
-			bootscreen.setTypeface(getTypeface());
+            mBootscreenHelper.getBootscreen().setTextSize(getFontSize());
+            mBootscreenHelper.getBootscreen().setColor(textColor);
+            mBootscreenHelper.getBootscreen().setTypeface(getTypeface());
 			// Write to the bootscreen.
-			bootscreen.doPersonalizationAndRedraw(inputMessage.getText().toString());
+            //TODO: Add a view refresh here to make up for the removal of the ...AndRedraw() method.
+            //mBootscreenHelper.getBootscreen().doPersonalizationAndRedraw(inputMessage.getText().toString());
+            mBootscreenHelper.getBootscreen().doPersonalization(inputMessage.getText().toString());
 			// Open the preview pane.
 			drawerLayout.openDrawer(leftDrawer);
 		}
@@ -358,7 +360,7 @@ public class MainActivity extends Activity {
 					case DialogInterface.BUTTON_POSITIVE:
 						// Yes button clicked
 						saveSettings();
-						bootscreen.installPersonalizedBootscreen(handleInstallationSuccess, handleInstallationFailure, handleNoRootRights);
+						mBootscreenHelper.installPersonalizedBootscreen(handleInstallationSuccess, handleInstallationFailure, handleNoRootRights);
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// No button clicked
@@ -434,12 +436,31 @@ public class MainActivity extends Activity {
 	 * Loads the default[debug] boot image from the app's assets folder into memory / the preview pane.
 	 */
 	private void loadImage() {
+        // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
+        BootscreenHelperCallback loadScreenCallback = new BootscreenHelperCallback() {
+            @Override
+            void onSuccess(String successMessage) {
+                Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            void onFailure(String failureMessage) {
+                Toast.makeText(getApplicationContext(), failureMessage, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            void onNeutral(String neutralMessage) { }
+        };
 		// Load the bitmap into the Bootscreen object
-		bootscreen = new Bootscreen(parent, previewView);
+		mBootscreenHelper = new BootscreenHelper(parent)
+                .setCallback(loadScreenCallback)
+                .loadDeviceBootscreen();
+        //TODO: Add a "setParentView()" method. Alternatively, a "getBitmap()" to set bitmap manually.
+        previewView.setImageBitmap(mBootscreenHelper.getBootscreen().getBitmap());
 	}
 
 	/**
-	 * Loads the given {@link com.android.graphics.Bitmap} into memory / the preview pane.
+	 * Loads the given com.android.graphics.Bitmap into memory / the preview pane.
 	 * @param	bitmap	The given Bitmap object to load.
 	 */
 	private void loadImage(Bitmap bitmap) {

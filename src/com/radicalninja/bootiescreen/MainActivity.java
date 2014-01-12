@@ -445,7 +445,7 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            void onFailure(String failureMessage) {
+            void onFailure(String failureMessage, int flag) {
                 Toast.makeText(getApplicationContext(), failureMessage, Toast.LENGTH_SHORT).show();
             }
 

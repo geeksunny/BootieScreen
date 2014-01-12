@@ -11,6 +11,19 @@ abstract class BootscreenHelperCallback {
     private String mNeutralMessage;
 
     /**
+     * Flag for encountering a situation where we cannot get root rights.
+     */
+    public static final int FLAG_NO_ROOT_RIGHTS = 1000;
+    /**
+     * Flag for encountering a situation where the bitmap file on disk is corrupt.
+     */
+    public static final int FLAG_BITMAP_CORRUPT = 1001;
+    /**
+     * Flag for encountering a fatal exception.
+     */
+    public static final int FLAG_EXCEPTION = 1002;
+
+    /**
      * Set the success message.
      *
      * @param successMessage The given message for your successful outcome.
@@ -57,8 +70,9 @@ abstract class BootscreenHelperCallback {
      * Called when the BootscreenHelper's action had a failed outcome.
      *
      * @param failureMessage A failure message provided by BootscreenHelper's current action.
+     * @param flag An integer value representing the current state of error.
      */
-    abstract void onFailure(String failureMessage);
+    abstract void onFailure(String failureMessage, int flag);
 
     /**
      * Called when the BootscreenHelper's action had a neutral outcome.

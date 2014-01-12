@@ -143,6 +143,16 @@ public class BootscreenHelper {
     }
 
     /**
+     * Retrieves the Bootscreen object's current working Bitmap.
+     *
+     * @return Returns the Bootscreen's working copy Bitmap.
+     */
+    public Bitmap getBitmap() {
+
+        return mBootscreen.getBitmap();
+    }
+
+    /**
      * Check's to see if a file exists in the app's data and subsequently attempts to delete it.
      * @param filename The given filename to look for in application's data directory.
      * @return Returns true if "ALL CLEAR!"; the file did not exist or was successfully deleted, false if a deletion attempt had failed.

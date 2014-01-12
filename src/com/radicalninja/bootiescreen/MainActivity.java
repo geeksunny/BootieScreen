@@ -455,8 +455,7 @@ public class MainActivity extends Activity {
 		mBootscreenHelper = new BootscreenHelper(parent)
                 .setCallback(loadScreenCallback)
                 .loadDeviceBootscreen();
-        //TODO: Add a "setParentView()" method. Alternatively, a "getBitmap()" to set bitmap manually.
-        previewView.setImageBitmap(mBootscreenHelper.getBootscreen().getBitmap());
+        previewView.setImageBitmap(mBootscreenHelper.getBitmap());
 	}
 
 	/**

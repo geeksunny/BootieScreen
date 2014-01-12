@@ -471,4 +471,54 @@ public class BootscreenHelper {
         return true;
     }
 
+    /**
+     * Invoke the successful response on the BootscreenHelper's callback object if one is set.
+     * @param message The given message to send to the successful response.
+     * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
+     */
+    private void callbackSuccess(String message, boolean destroyAfter) {
+        
+        if (mBootscreenHelperCallback != null) {
+            mBootscreenHelperCallback
+                    .setSuccessMessage(message)
+                    .invokeSuccess();
+            if (destroyAfter) {
+                mBootscreenHelperCallback = null;
+            }
+        }
+    }
+
+    /**
+     * Invoke the failure response on the BootscreenHelper's callback object if one is set.
+     * @param message The given message to send to the failure response.
+     * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
+     */
+    private void callbackFailure(String message, boolean destroyAfter) {
+
+        if (mBootscreenHelperCallback != null) {
+            mBootscreenHelperCallback
+                    .setFailureMessage(message)
+                    .invokeFailure();
+            if (destroyAfter) {
+                mBootscreenHelperCallback = null;
+            }
+        }
+    }
+
+    /**
+     * Invoke the neutral response on the BootscreenHelper's callback object if one is set.
+     * @param message The given message to send to the neutral response.
+     * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
+     */
+    private void callbackNeutral(String message, boolean destroyAfter) {
+
+        if (mBootscreenHelperCallback != null) {
+            mBootscreenHelperCallback
+                    .setNeutralMessage(message)
+                    .invokeNeutral();
+            if (destroyAfter) {
+                mBootscreenHelperCallback = null;
+            }
+        }
+    }
 }

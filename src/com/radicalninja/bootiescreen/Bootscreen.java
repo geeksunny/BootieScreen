@@ -75,10 +75,13 @@ public class Bootscreen extends Canvas {
 	
 	/**
 	 * Resets the bootscreen's mWorkingCopy Bitmap object to it's mOriginalState.
+     *
+     * @return Returns a reference to itself for method chaining.
 	 */
-	public void resetBitmap() {
+	public Bootscreen resetBitmap() {
 		
 		setWorkingBitmap(mOriginalState.copy(mOriginalState.getConfig(), true));
+        return this;
 	}
 
     /**
@@ -92,21 +95,25 @@ public class Bootscreen extends Canvas {
     /**
 	 * Set's the bootscreen's mPainter object's color to the given value.
 	 * @param color An integer value for the Painter's color.
+     * @return Returns a reference to itself for method chaining.
 	 */
-	public void setColor(int color) {
+	public Bootscreen setColor(int color) {
 		
 		mPainter.setColor(color);
+        return this;
 	}
 	
 	/**
 	 * Set's the Bootscreen's active working copy bitmap object as well as the Bootscreen's active bitmap to draw in to. If a parent ImageView object is set, redraw the view.
 	 * 
 	 * @param bitmap The given mutable Bitmap object.
+     * @return Returns a reference to itself for method chaining.
 	 */
-	public void setWorkingBitmap(Bitmap bitmap) {
+	public Bootscreen setWorkingBitmap(Bitmap bitmap) {
 		
 		mWorkingCopy = bitmap;
 		super.setBitmap(mWorkingCopy);
+        return this;
 	}
 
     /**
@@ -114,38 +121,45 @@ public class Bootscreen extends Canvas {
      *
      * @param bitmap The given bitmap object.
      * @param updateWorkingCopy If true, a mutable copy of bitmap will be loaded into mWorkingCopy.
+     * @return Returns a reference to itself for method chaining.
      */
-    public void setOriginalState(Bitmap bitmap, boolean updateWorkingCopy) {
+    public Bootscreen setOriginalState(Bitmap bitmap, boolean updateWorkingCopy) {
 
         mOriginalState = bitmap;
         if (updateWorkingCopy) {
             setWorkingBitmap(mOriginalState.copy(mOriginalState.getConfig(), true));
         }
+        return this;
     }
 	
 	/**
 	 * Set's the bootscreen's mPainter object's TextSize setting to the given value.
 	 * @param size A float value for the Painter's TextSize.
+     * @return Returns a reference to itself for method chaining.
 	 */
-	public void setTextSize(float size) {
+	public Bootscreen setTextSize(float size) {
 		
 		mPainter.setTextSize(size);
+        return this;
 	}
 	
-	/**
-	 * Set's the bootscreen's mPainter object's Typeface setting to the given Typeface object.
-	 * @param typeface The given Typeface object for the Painter's Typeface.
-	 */
-	public void setTypeface(Typeface typeface) {
+    /**
+     * Set's the bootscreen's mPainter object's Typeface setting to the given Typeface object.
+     * @param typeface The given Typeface object for the Painter's Typeface.
+     * @return Returns a reference to itself for method chaining.
+     */
+	public Bootscreen setTypeface(Typeface typeface) {
 		
 		mPainter.setTypeface(typeface);
+        return this;
 	}
 	
 	/**
 	 * Personalize the mWorkingCopy bitmap with the given message string.
 	 * @param message The given message string.
+     * @return Returns a reference to itself for method chaining.
 	 */
-	public void doPersonalization(String message) {
+	public Bootscreen doPersonalization(String message) {
 		
 		// Write's nothing if message is empty string.
 		// Essentially treats a blank message as a "Reset back to DEVICE_BACKUP."
@@ -155,6 +169,7 @@ public class Bootscreen extends Canvas {
 			
 			this.drawText(message, x, y, mPainter);
 		}
+        return this;
 	}
 	
 }

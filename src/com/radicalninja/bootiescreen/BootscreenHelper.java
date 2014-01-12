@@ -1,6 +1,5 @@
 package com.radicalninja.bootiescreen;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -22,8 +21,8 @@ public class BootscreenHelper {
     private Context mContext;
     private Bootscreen mBootscreen;
     private BootscreenHelperCallback mBootscreenHelperCallback;
-
     private String filePrefixDirectory;
+    private boolean mActionIsFailed = false;
 
     private static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
     private static final String FILENAME_WORKING_COPY = "clogo.bmp";
@@ -80,6 +79,10 @@ public class BootscreenHelper {
         if (!fileExists(FILENAME_DEVICE_BACKUP)) {
             // Since the file dies not exist yet, pull a copy from the device.
             pullBootscreenFromDevice(false);
+            if (mActionIsFailed) {
+                mActionIsFailed = false; // Reset the flag!
+                return this;
+            }
         }
 
         Bitmap bitmap = BitmapFactory.decodeFile(filePrefixDirectory + "/" + FILENAME_DEVICE_BACKUP);
@@ -90,22 +93,13 @@ public class BootscreenHelper {
             bitmap = BitmapFactory.decodeFile(filePrefixDirectory + "/" + FILENAME_DEVICE_BACKUP);
             if (bitmap == null) {
                 Log.e(LOG_TAG, "Could not read the bitmap file, even after re-pulling.");
-                if (mBootscreenHelperCallback != null) {
-                    mBootscreenHelperCallback
-                            .setFailureMessage("Could not read the bootscreen's bitmap file.")
-                            .invokeFailure();
-                    mBootscreenHelperCallback = null;
-                }
+                callbackFailure("Could not read the bootscreen's bitmap file.", true);
+                return this;
             }
         }
         mBootscreen.setOriginalState(bitmap, true);
         Log.i(LOG_TAG, "Device bitmap successfully loaded into the Bootscreen object.");
-        if (mBootscreenHelperCallback != null) {
-            mBootscreenHelperCallback
-                    .setSuccessMessage("Device bitmap successfully loaded into editor!")
-                    .invokeSuccess();
-            mBootscreenHelperCallback = null;
-        }
+        callbackSuccess("Device bitmap successfully loaded into editor!", true);
 
         return this;
     }
@@ -252,10 +246,7 @@ public class BootscreenHelper {
             Command command = new Command(0, cmd) {
 
                 @Override
-                public void commandCompleted(int id, int arg1) {
-                    // Grabbing the now-completely backed up DEVICE_BACKUP file.
-                    mBootscreen.setOriginalState(BitmapFactory.decodeFile(filePrefixDirectory+"/"+FILENAME_DEVICE_BACKUP), true);
-                }
+                public void commandCompleted(int id, int arg1) { }
 
                 @Override
                 public void commandOutput(int id, String line) {
@@ -271,37 +262,31 @@ public class BootscreenHelper {
             try {
                 RootTools.getShell(true).add(command);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
+                // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "IOException!!");
                 e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be pulled from the device. [IOException]", true);
+                mActionIsFailed = true;
             } catch (TimeoutException e) {
-                // TODO Auto-generated catch block
+                // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "TimeoutException!!");
                 e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.", true);
+                mActionIsFailed = true;
             } catch (RootDeniedException e) {
-                // TODO Auto-generated catch block
+                // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "RootDeniedException!!");
                 e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.", true);
+                mActionIsFailed = true;
+            }
+            if (mActionIsFailed) {
+                return false;
             }
         } else {
             Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
-            DialogInterface.OnDismissListener ifNoRootDismissListener =
-                    new DialogInterface.OnDismissListener() {
-
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                            Activity activity = (Activity) mContext;
-                            activity.moveTaskToBack(true);
-                        }
-                    };
-            AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
-                    .setCancelable(true)
-                    .setTitle("Root is required!")
-                    .setMessage("The app was not able to get the root privileges!")
-                    .setInverseBackgroundForced(true);
-            builder.setOnDismissListener(ifNoRootDismissListener);
-            builder.setNeutralButton("Ok.", null);
-            builder.create().show();
+            callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.", true);
+            mActionIsFailed = true;
             return false;
         }
 

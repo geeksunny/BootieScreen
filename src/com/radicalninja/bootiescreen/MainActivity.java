@@ -284,16 +284,17 @@ public class MainActivity extends Activity {
 	OnClickListener previewButtonClicked = new OnClickListener() {
 		public void onClick(View v) {
 
+            Bootscreen bootscreen = mBootscreenHelper.getBootscreen();
 			// Reset the bootscreen to its original state for a new preview.
-            mBootscreenHelper.getBootscreen().resetBitmap();
+            bootscreen.resetBitmap();
 			// Update settings for the bootscreen.
-            mBootscreenHelper.getBootscreen().setTextSize(getFontSize());
-            mBootscreenHelper.getBootscreen().setColor(textColor);
-            mBootscreenHelper.getBootscreen().setTypeface(getTypeface());
+            bootscreen
+                    .setTextSize(getFontSize())
+                    .setColor(textColor)
+                    .setTypeface(getTypeface());
 			// Write to the bootscreen.
-            //TODO: Add a view refresh here to make up for the removal of the ...AndRedraw() method.
-            //mBootscreenHelper.getBootscreen().doPersonalizationAndRedraw(inputMessage.getText().toString());
-            mBootscreenHelper.getBootscreen().doPersonalization(inputMessage.getText().toString());
+            bootscreen.doPersonalization(inputMessage.getText().toString());
+            previewView.setImageBitmap(bootscreen.getBitmap());
 			// Open the preview pane.
 			drawerLayout.openDrawer(leftDrawer);
 		}

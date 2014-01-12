@@ -281,7 +281,7 @@ public class MainActivity extends Activity {
 	/**
 	 * OnClickListener for the Preview button
 	 */
-	OnClickListener previewButtonClicked = new OnClickListener() {
+	private OnClickListener previewButtonClicked = new OnClickListener() {
 		public void onClick(View v) {
 
             Bootscreen bootscreen = mBootscreenHelper.getBootscreen();
@@ -303,7 +303,7 @@ public class MainActivity extends Activity {
 	/**
 	 * OnClickListener for the Save button
 	 */
-	OnClickListener saveButtonClicked = new OnClickListener() {
+	private OnClickListener saveButtonClicked = new OnClickListener() {
 
 		public void onClick(View v) {
 			
@@ -383,7 +383,7 @@ public class MainActivity extends Activity {
 	/**
 	 * Calling forth a color picker!
 	 */
-	OnClickListener colorPicker = new OnClickListener() {
+	private OnClickListener colorPicker = new OnClickListener() {
 		public void onClick(View v) {
 			final ColorDialogBuilder builder = new ColorDialogBuilder(parent);
 			builder.setCancelable(true);

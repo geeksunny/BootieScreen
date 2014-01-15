@@ -22,6 +22,10 @@ abstract class BootscreenHelperCallback {
      * Flag for encountering a fatal exception.
      */
     public static final int FLAG_EXCEPTION = 1002;
+    /**
+     * Flag for encountering a situation where the bitmap file could not be saved to disk.
+     */
+    public static final int FLAG_BITMAP_NOT_SAVED = 1003;
 
     /**
      * Set the success message.
@@ -97,9 +101,9 @@ abstract class BootscreenHelperCallback {
      *
      * @return Returns the current BootscreenHelperCallback object for method chaining.
      */
-    final public BootscreenHelperCallback invokeFailure() {
+    final public BootscreenHelperCallback invokeFailure(int flag) {
 
-        onSuccess(mFailureMessage);
+        onFailure(mFailureMessage, flag);
         return this;
     }
 

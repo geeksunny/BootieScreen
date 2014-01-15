@@ -93,7 +93,8 @@ public class BootscreenHelper {
             bitmap = BitmapFactory.decodeFile(filePrefixDirectory + "/" + FILENAME_DEVICE_BACKUP);
             if (bitmap == null) {
                 Log.e(LOG_TAG, "Could not read the bitmap file, even after re-pulling.");
-                callbackFailure("Could not read the bootscreen's bitmap file.", true);
+                callbackFailure("Could not read the bootscreen's bitmap file.",
+                                BootscreenHelperCallback.FLAG_BITMAP_CORRUPT, true);
                 return this;
             }
         }
@@ -265,19 +266,22 @@ public class BootscreenHelper {
                 // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "IOException!!");
                 e.printStackTrace();
-                callbackFailure("Bootscreen graphic could not be pulled from the device. [IOException]", true);
+                callbackFailure("Bootscreen graphic could not be pulled from the device. [IOException]",
+                                BootscreenHelperCallback.FLAG_EXCEPTION, true);
                 mActionIsFailed = true;
             } catch (TimeoutException e) {
                 // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "TimeoutException!!");
                 e.printStackTrace();
-                callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.", true);
+                callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.",
+                                BootscreenHelperCallback.FLAG_EXCEPTION, true);
                 mActionIsFailed = true;
             } catch (RootDeniedException e) {
                 // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "RootDeniedException!!");
                 e.printStackTrace();
-                callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.", true);
+                callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.",
+                                BootscreenHelperCallback.FLAG_EXCEPTION, true);
                 mActionIsFailed = true;
             }
             if (mActionIsFailed) {
@@ -285,7 +289,8 @@ public class BootscreenHelper {
             }
         } else {
             Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
-            callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.", true);
+            callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.",
+                            BootscreenHelperCallback.FLAG_NO_ROOT_RIGHTS, true);
             mActionIsFailed = true;
             return false;
         }
@@ -476,14 +481,15 @@ public class BootscreenHelper {
     /**
      * Invoke the failure response on the BootscreenHelper's callback object if one is set.
      * @param message The given message to send to the failure response.
+     * @param flag The flag code that will be sent to .invokeFailure().
      * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
      */
-    private void callbackFailure(String message, boolean destroyAfter) {
+    private void callbackFailure(String message, int flag, boolean destroyAfter) {
 
         if (mBootscreenHelperCallback != null) {
             mBootscreenHelperCallback
                     .setFailureMessage(message)
-                    .invokeFailure();
+                    .invokeFailure(flag);
             if (destroyAfter) {
                 mBootscreenHelperCallback = null;
             }

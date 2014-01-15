@@ -22,7 +22,6 @@ public class BootscreenHelper {
     private Bootscreen mBootscreen;
     private BootscreenHelperCallback mBootscreenHelperCallback;
     private String filePrefixDirectory;
-    private boolean mActionIsFailed = false;
 
     private static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
     private static final String FILENAME_WORKING_COPY = "clogo.bmp";
@@ -78,9 +77,8 @@ public class BootscreenHelper {
 
         if (!fileExists(FILENAME_DEVICE_BACKUP)) {
             // Since the file dies not exist yet, pull a copy from the device.
-            pullBootscreenFromDevice(false);
-            if (mActionIsFailed) {
-                mActionIsFailed = false; // Reset the flag!
+            if (!pullBootscreenFromDevice(false)) {
+                Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen()");
                 return this;
             }
         }
@@ -268,30 +266,26 @@ public class BootscreenHelper {
                 e.printStackTrace();
                 callbackFailure("Bootscreen graphic could not be pulled from the device. [IOException]",
                                 BootscreenHelperCallback.FLAG_EXCEPTION, true);
-                mActionIsFailed = true;
+                return false;
             } catch (TimeoutException e) {
                 // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "TimeoutException!!");
                 e.printStackTrace();
                 callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.",
                                 BootscreenHelperCallback.FLAG_EXCEPTION, true);
-                mActionIsFailed = true;
+                return false;
             } catch (RootDeniedException e) {
                 // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "RootDeniedException!!");
                 e.printStackTrace();
                 callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.",
                                 BootscreenHelperCallback.FLAG_EXCEPTION, true);
-                mActionIsFailed = true;
-            }
-            if (mActionIsFailed) {
                 return false;
             }
         } else {
             Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
             callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.",
                             BootscreenHelperCallback.FLAG_NO_ROOT_RIGHTS, true);
-            mActionIsFailed = true;
             return false;
         }
 

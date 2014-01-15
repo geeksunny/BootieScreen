@@ -222,7 +222,7 @@ public class BootscreenHelper {
      * @param shouldOverwriteExistingBackup Boolean value on whether we should overwrite any existing DEVICE_BACKUP files or not.
      * @return Returns a boolean true if the procedure succeeds without a hitch, and false if otherwise.
      */
-    public boolean pullBootscreenFromDevice(boolean shouldOverwriteExistingBackup) {
+    private boolean pullBootscreenFromDevice(boolean shouldOverwriteExistingBackup) {
 
         // Handling the existing backup
         if (shouldOverwriteExistingBackup) {

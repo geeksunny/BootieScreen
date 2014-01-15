@@ -293,16 +293,16 @@ public class BootscreenHelper {
     }
 
     /**
-     * Pushes the WORKING_COPY .bmp file to the clogo block device!
-     * TODO: Update this documentation
+     * Pushes the customized bootscreen to your device. Writes the WORKING_COPY .bmp file to clogo.
+     * @return Returns a boolean true if the procedure succeeds without a hitch, and false if otherwise.
      */
-    public boolean pushBootscreenToDevice(final AlertDialog.Builder successHandlingAlertDialogBuilder,
-                                          final AlertDialog.Builder failureHandlingAlertDialogBuilder,
-                                          final DialogInterface.OnDismissListener ifNoRootDismissListener) {
+    private boolean pushBootscreenToDevice() {
 
         // Last-minute verification that the WORKING_COPY file does indeed exist. We don't want to attempt to write any weird null data to the block device!
         if (!fileExists(FILENAME_WORKING_COPY)) {
             Log.e(LOG_TAG, "CHOKE! We somehow have gotten to the pushBootscreenToDevice() stage and don't have a working copy on disk! INVESTIGATE");
+            callbackFailure("There was a problem saving your bitmap. The bootscreen was not installed.",
+                            BootscreenHelperCallback.FLAG_BITMAP_NOT_SAVED, true);
             return false;
         }
         // Checking for Root access.
@@ -314,9 +314,7 @@ public class BootscreenHelper {
             Command command = new Command(0, cmd) {
 
                 @Override
-                public void commandCompleted(int arg0, int arg1) {
-                    successHandlingAlertDialogBuilder.show();
-                }
+                public void commandCompleted(int arg0, int arg1) { }
 
                 @Override
                 public void commandOutput(int id, String line) {
@@ -327,35 +325,36 @@ public class BootscreenHelper {
                 }
 
                 @Override
-                public void commandTerminated(int arg0, String arg1) {
-                    failureHandlingAlertDialogBuilder.show();
-                }
+                public void commandTerminated(int arg0, String arg1) { }
             };
             try {
                 RootTools.getShell(true).add(command);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
+                // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "IOException!!");
                 e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be pushed to the device. [IOException]",
+                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
+                return false;
             } catch (TimeoutException e) {
-                // TODO Auto-generated catch block
+                // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "TimeoutException!!");
                 e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be pushed to the device. [IOException]",
+                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
+                return false;
             } catch (RootDeniedException e) {
-                // TODO Auto-generated catch block
+                // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "RootDeniedException!!");
                 e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be pushed to the device. [IOException]",
+                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
+                return false;
             }
         } else {
             Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
-            AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
-                    .setCancelable(true)
-                    .setTitle("Root is required!")
-                    .setMessage("The app was not able to get the root privileges!")
-                    .setInverseBackgroundForced(true);
-            builder.setOnDismissListener(ifNoRootDismissListener);
-            builder.setNeutralButton("Ok.", null);
-            builder.create().show();
+            callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.",
+                    BootscreenHelperCallback.FLAG_NO_ROOT_RIGHTS, true);
             return false;
         }
 
@@ -431,9 +430,7 @@ public class BootscreenHelper {
         return true;
     }
 
-    public boolean installPersonalizedBootscreen(AlertDialog.Builder successHandlingAlertDialogBuilder,
-                                                 AlertDialog.Builder failureHandlingAlertDialogBuilder,
-                                                 DialogInterface.OnDismissListener ifNoRootDismissListener) {
+    public BootscreenHelper installPersonalizedBootscreen() {
 
 		/*
 		 * Proposed timeline: (Some of this hapens outside of this method)
@@ -443,16 +440,18 @@ public class BootscreenHelper {
 		 */
         if (saveBitmap()) {
             Log.i(LOG_TAG, "Bitmap saved to disk! Now attempting to write it to the block device.");
-            if (!pushBootscreenToDevice(successHandlingAlertDialogBuilder, failureHandlingAlertDialogBuilder, ifNoRootDismissListener)) {
+            if (!pushBootscreenToDevice()) {
                 Log.e(LOG_TAG, "Looks like something didn't work on the installation! Check further up in the log for related details!");
-                failureHandlingAlertDialogBuilder.show();
-                return false;
+                // callbackFailure() will have been called in pushBootscreenToDevice().
+                return this;
             }
         } else {
-            failureHandlingAlertDialogBuilder.show();
-            return false;
+            callbackFailure("There was a problem saving your bitmap. The bootscreen was not installed.",
+                            BootscreenHelperCallback.FLAG_BITMAP_NOT_SAVED, true);
+            return this;
         }
-        return true;
+        callbackSuccess("Your customized bootscreen was successfully installed!", true);
+        return this;
     }
 
     /**

@@ -306,9 +306,9 @@ public class MainActivity extends Activity {
 	private OnClickListener saveButtonClicked = new OnClickListener() {
 
 		public void onClick(View v) {
-			
+
 			// AlertDialogs for handling the result of the installation procedure.
-			DialogInterface.OnClickListener handleInstallationOutcome = new DialogInterface.OnClickListener() {
+			final DialogInterface.OnClickListener handleInstallationOutcome = new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					switch (which) {
@@ -332,28 +332,35 @@ public class MainActivity extends Activity {
 					}
 				}
 			};
-			// - SUCCESSFUL INSTALLTION AlertDialog
-			final AlertDialog.Builder handleInstallationSuccess = new AlertDialog.Builder(parent);
-			handleInstallationSuccess
-				.setMessage("Your personalized bootscreen was successfully installed! Would you like to reboot now and test it out?")
-				.setPositiveButton("Yes", handleInstallationOutcome)
-				.setNegativeButton("No", handleInstallationOutcome);
-			// - FAILED INSTALLATION AlertDialog
-			final AlertDialog.Builder handleInstallationFailure = new AlertDialog.Builder(parent);
-			handleInstallationFailure
-				.setMessage("Unfortunately it looks like your bootscreen could not be installed! Check the logs and submit a bug report or try again later!")
-				.setNeutralButton("Ok", handleInstallationOutcome);
-			// - NO ROOT OnDismissListener
-			final DialogInterface.OnDismissListener handleNoRootRights = new DialogInterface.OnDismissListener() {
-				
-				@Override
-				public void onDismiss(DialogInterface dialog) {
-					Toast.makeText(parent, "Could not get Root rights!", Toast.LENGTH_SHORT).show();
-					//drawerLayout.closeDrawer(leftDrawer);
-				}
-			};
-			
-			// AlertDialog for proceeding with the bootscreen installation.
+            final BootscreenHelperCallback installationCallback = new BootscreenHelperCallback() {
+                @Override
+                void onSuccess(String successMessage) {
+                    // - SUCCESSFUL INSTALLTION AlertDialog
+                    final AlertDialog.Builder handleInstallationSuccess = new AlertDialog.Builder(parent);
+                    handleInstallationSuccess
+                            .setMessage("Your personalized bootscreen was successfully installed! Would you like to reboot now and test it out?")
+                            .setPositiveButton("Yes", handleInstallationOutcome)
+                            .setNegativeButton("No", handleInstallationOutcome)
+                            .show();
+                }
+
+                @Override
+                void onFailure(String failureMessage, int flag) {
+                    // TODO: Possibly add in code that conditions the response based on the flag. If that appears to be necessary.
+                    final AlertDialog.Builder handleInstallationFailure = new AlertDialog.Builder(parent);
+                    handleInstallationFailure
+                            .setTitle("Installation Failure")
+                            .setIcon(android.R.drawable.stat_sys_warning)
+                            .setMessage(failureMessage)
+                            .setNeutralButton("Ok", handleInstallationOutcome)
+                            .show();
+                }
+
+                @Override
+                void onNeutral(String neutralMessage) { }
+            };
+
+			// This AlertDialog will be shown to the user first.
 			DialogInterface.OnClickListener doInstallation = new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
@@ -361,11 +368,13 @@ public class MainActivity extends Activity {
 					case DialogInterface.BUTTON_POSITIVE:
 						// Yes button clicked
 						saveSettings();
-						mBootscreenHelper.installPersonalizedBootscreen(handleInstallationSuccess, handleInstallationFailure, handleNoRootRights);
+						mBootscreenHelper
+                                .setCallback(installationCallback)
+                                .installPersonalizedBootscreen();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// No button clicked
-						Toast.makeText(parent, "Installation was CANCELLED!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(parent, "Installation CANCELLED!", Toast.LENGTH_SHORT).show();
 						drawerLayout.closeDrawer(leftDrawer);
 						break;
 					}

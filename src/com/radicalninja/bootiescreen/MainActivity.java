@@ -204,19 +204,17 @@ public class MainActivity extends Activity {
 		case R.id.action_restoreBackup:
 			
 			// AlertDialogs for handling the result of the installation procedure.
-			DialogInterface.OnClickListener handleRestorationOutcome = new DialogInterface.OnClickListener() {
+			final DialogInterface.OnClickListener handleRestorationOutcome = new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						// YES (Success)
-						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", false).commit();
 						RootHelper.restartDevice();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// NO (Success)
 						Toast.makeText(parent, "Restoration SUCCESS!", Toast.LENGTH_SHORT).show();
-						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", false).commit();
 						invalidateOptionsMenu();
 						break;
 					case DialogInterface.BUTTON_NEUTRAL:
@@ -226,26 +224,33 @@ public class MainActivity extends Activity {
 					}
 				}
 			};
-			// - SUCCESSFUL INSTALLTION AlertDialog
-			final AlertDialog.Builder handleRestorationSuccess = new AlertDialog.Builder(parent);
-			handleRestorationSuccess
-				.setMessage("Your device's original bootscreen was successfully installed! Would you like to reboot now and test it out?")
-				.setPositiveButton("Yes", handleRestorationOutcome)
-				.setNegativeButton("No", handleRestorationOutcome);
-			// - FAILED INSTALLATION AlertDialog
-			final AlertDialog.Builder handleRestorationFailure = new AlertDialog.Builder(parent);
-			handleRestorationFailure
-				.setMessage("Unfortunately it looks like your bootscreen could not be installed! Check the logs and submit a bug report or try again later!")
-				.setNeutralButton("Ok", handleRestorationOutcome);
-			// - NO ROOT OnDismissListener
-			final DialogInterface.OnDismissListener handleNoRootRights = new DialogInterface.OnDismissListener() {
-				
-				@Override
-				public void onDismiss(DialogInterface dialog) {
-					Toast.makeText(parent, "Could not get Root rights!", Toast.LENGTH_SHORT).show();
-					//drawerLayout.closeDrawer(leftDrawer);
-				}
-			};
+            final BootscreenHelperCallback restorationCallback = new BootscreenHelperCallback() {
+                @Override
+                void onSuccess(String successMessage) {
+                    getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", false).commit();
+                    final AlertDialog.Builder handleRestorationSuccess = new AlertDialog.Builder(parent);
+                    handleRestorationSuccess
+                            .setMessage("Your device's original bootscreen was successfully installed! Would you like to reboot now and test it out?")
+                            .setPositiveButton("Yes", handleRestorationOutcome)
+                            .setNegativeButton("No", handleRestorationOutcome)
+                            .show();
+                }
+
+                @Override
+                void onFailure(String failureMessage, int flag) {
+                    // TODO: Possibly add in code that conditions the response based on the flag. If that appears to be necessary.
+                    final AlertDialog.Builder handleRestorationFailure = new AlertDialog.Builder(parent);
+                    handleRestorationFailure
+                            .setTitle("Restoration Failure")
+                            .setIcon(android.R.drawable.stat_sys_warning)
+                            .setMessage(failureMessage)
+                            .setNeutralButton("Ok", handleRestorationOutcome)
+                            .show();
+                }
+
+                @Override
+                void onNeutral(String neutralMessage) { }
+            };
 			
 			// AlertDialog for proceeding with the bootscreen installation.
 			DialogInterface.OnClickListener doRestoration = new DialogInterface.OnClickListener() {
@@ -255,11 +260,13 @@ public class MainActivity extends Activity {
 					case DialogInterface.BUTTON_POSITIVE:
 						// Yes button clicked
 						saveSettings();
-						mBootscreenHelper.restoreDeviceOriginalBootscreen(handleRestorationSuccess, handleRestorationFailure, handleNoRootRights);
+						mBootscreenHelper
+                                .setCallback(restorationCallback)
+                                .restoreDeviceOriginalBootscreen();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// No button clicked
-						Toast.makeText(parent, "Restoration was CANCELLED!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(parent, "Restoration CANCELLED!", Toast.LENGTH_SHORT).show();
 						break;
 					}
 				}

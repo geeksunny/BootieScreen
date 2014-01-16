@@ -362,16 +362,17 @@ public class BootscreenHelper {
     }
 
     /**
-     * Pushes the DEVICE_BACKUP .bmp file to the clogo block device!
+     * Pushes the original bootscreen to your device. Writes the DEVICE_BACKUP .bmp file to clogo.
+     * @return Returns the current BootscreenHelper object for method chaining.
      */
-    public boolean restoreDeviceOriginalBootscreen(final AlertDialog.Builder successHandlingAlertDialogBuilder,
-                                                   final AlertDialog.Builder failureHandlingAlertDialogBuilder,
-                                                   final DialogInterface.OnDismissListener ifNoRootDismissListener) {
-        //TODO: upon successful restoration, reset all the interface controls to the default empty state. Save changes to PREFS.
+    public BootscreenHelper restoreDeviceOriginalBootscreen() {
+
         // Last-minute verification that the DEVICE_BACKUP file does indeed exist. We don't want to attempt to write any weird null data to the block device!
         if (!fileExists(FILENAME_DEVICE_BACKUP)) {
             Log.e(LOG_TAG, "CHOKE! We somehow have gotten to the restoreDeviceOriginalBootscreen() stage and don't have an original to restore... How did this happen?");
-            return false;
+            callbackFailure("There was a problem restoring your bootscreen. Your original bootscreen graphic file is missing. Restore the file or pull from your device again.",
+                            BootscreenHelperCallback.FLAG_BITMAP_MISSING, true);
+            return this;
         }
         // Checking for Root access.
         if (RootTools.isAccessGiven()) {
@@ -382,9 +383,7 @@ public class BootscreenHelper {
             Command command = new Command(0, cmd) {
 
                 @Override
-                public void commandCompleted(int arg0, int arg1) {
-                    successHandlingAlertDialogBuilder.show();
-                }
+                public void commandCompleted(int arg0, int arg1) { }
 
                 @Override
                 public void commandOutput(int id, String line) {
@@ -395,39 +394,40 @@ public class BootscreenHelper {
                 }
 
                 @Override
-                public void commandTerminated(int arg0, String arg1) {
-                    failureHandlingAlertDialogBuilder.show();
-                }
+                public void commandTerminated(int arg0, String arg1) { }
             };
             try {
                 RootTools.getShell(true).add(command);
             } catch (IOException e) {
-                // TODO Auto-generated catch block
+                // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "IOException!!");
                 e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be restored to the device. [IOException]",
+                                BootscreenHelperCallback.FLAG_EXCEPTION, true);
+                return this;
             } catch (TimeoutException e) {
-                // TODO Auto-generated catch block
+                // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "TimeoutException!!");
                 e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be restored to the device. Could not get root rights.",
+                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
+                return this;
             } catch (RootDeniedException e) {
-                // TODO Auto-generated catch block
+                // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "RootDeniedException!!");
                 e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be restored to the device. Could not get root rights.",
+                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
+                return this;
             }
         } else {
             Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
-            AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
-                    .setCancelable(true)
-                    .setTitle("Root is required!")
-                    .setMessage("The app was not able to get the root privileges!")
-                    .setInverseBackgroundForced(true);
-            builder.setOnDismissListener(ifNoRootDismissListener);
-            builder.setNeutralButton("Ok.", null);
-            builder.create().show();
-            return false;
+            callbackFailure("Bootscreen graphic could not be restored to the device. Could not get root rights.",
+                            BootscreenHelperCallback.FLAG_NO_ROOT_RIGHTS, true);
+            return this;
         }
-
-        return true;
+        callbackSuccess("Your original bootscreen was successfully restored!", true);
+        return this;
     }
 
     public BootscreenHelper installPersonalizedBootscreen() {

@@ -26,6 +26,10 @@ abstract class BootscreenHelperCallback {
      * Flag for encountering a situation where the bitmap file could not be saved to disk.
      */
     public static final int FLAG_BITMAP_NOT_SAVED = 1003;
+    /**
+     * Flag for encountering a situation where the bitmap file is missing.
+     */
+    public static final int FLAG_BITMAP_MISSING = 1004;
 
     /**
      * Set the success message.

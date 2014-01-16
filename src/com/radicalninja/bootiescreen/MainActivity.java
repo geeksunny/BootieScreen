@@ -39,12 +39,13 @@ public class MainActivity extends Activity {
 	final MainActivity parent = this;
 	private static final String LOG_TAG = "MainActivity";
 	private static final String PREFS_NAME = "BootscreenPrefs";
-	
+
 	DrawerLayout drawerLayout;
+    ActionBarDrawerToggle mDrawerToggle;
 	FrameLayout leftDrawer;
 	ImageView previewView;
 	BootscreenHelper mBootscreenHelper;
-	
+
 	EditText inputMessage;
 	SeekBar inputFontSize;
 	TextView textFontSizeValue;
@@ -52,7 +53,7 @@ public class MainActivity extends Activity {
 	Button buttonColorPicker;
 	Button buttonPreview;
 	Button buttonSave;
-	
+
 	Integer textColor;
 	TextView textColorPickerPreview;
 
@@ -73,17 +74,17 @@ public class MainActivity extends Activity {
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setHomeButtonEnabled(true);
 		drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-		final ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
+		mDrawerToggle = new ActionBarDrawerToggle(
 				this,
 				drawerLayout,
 				R.drawable.ic_navigation_drawer,
 				R.string.actionBarContentOpen,
 				R.string.actionBarContentClose) {
-			
+
 			public void onDrawerClosed(View drawerView) {
 				invalidateOptionsMenu();
 			}
-			
+
 			public void onDrawerOpened(View drawerView) {
 				invalidateOptionsMenu();
 			}
@@ -91,24 +92,24 @@ public class MainActivity extends Activity {
 		drawerLayout.post(new Runnable() {
 			@Override
 			public void run() {
-				mDrawerToggle.syncState();
+				parent.mDrawerToggle.syncState();
 			}
 		});
 		drawerLayout.setDrawerListener(mDrawerToggle);
-		
+
 		previewView = (ImageView) findViewById(R.id.imagePreview);
 		inputMessage = (EditText) findViewById(R.id.inputMessage);
 		// - Font Size Selection
 		inputFontSize = (SeekBar) findViewById(R.id.inputFontSize);
 		textFontSizeValue = (TextView) findViewById(R.id.textFontSizeValue);
 		inputFontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-			
+
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) { }
-			
+
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) { }
-			
+
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				textFontSizeValue.setText(String.format("%ddp", (int) parent.getFontSize() ));
@@ -147,21 +148,21 @@ public class MainActivity extends Activity {
 		int inputTypefacePos = settings.getInt("inputTypefacePos", 0);
 		if (inputTypeface.getCount() >= inputTypefacePos) {
 			// Ensures that we don't try to select an item outside the list's bounds. Should probably be handled by a try / catch?
-			inputTypeface.setSelection(inputTypefacePos);			
+			inputTypeface.setSelection(inputTypefacePos);
 		}
 	}
-	
+
 	@Override
 	public void onStart() {
-		
+
 		super.onStart();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage();
 	}
-	
+
 	@Override
 	public void onResume() {
-		
+
 		super.onResume();
 		// Reset bitmap to original state.
 		//bootscreen.
@@ -199,10 +200,15 @@ public class MainActivity extends Activity {
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+
+        // Trigger the navigation drawer by tapping the action bar title/icon.
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
 		// Handle menu item selection
 		switch (item.getItemId()) {
 		case R.id.action_restoreBackup:
-			
+
 			// AlertDialogs for handling the result of the installation procedure.
 			final DialogInterface.OnClickListener handleRestorationOutcome = new DialogInterface.OnClickListener() {
 				@Override
@@ -251,7 +257,7 @@ public class MainActivity extends Activity {
                 @Override
                 void onNeutral(String neutralMessage) { }
             };
-			
+
 			// AlertDialog for proceeding with the bootscreen installation.
 			DialogInterface.OnClickListener doRestoration = new DialogInterface.OnClickListener() {
 				@Override
@@ -278,7 +284,7 @@ public class MainActivity extends Activity {
 				.setNegativeButton("No", doRestoration)
 				.show();
 
-			
+
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -410,7 +416,7 @@ public class MainActivity extends Activity {
 					Log.i(LOG_TAG, "Color picker was success!");
 					updateTextColor(builder.getColorPicker().getColor());
 				}
-				
+
 			});
 			builder.create().show();
 		}
@@ -424,10 +430,11 @@ public class MainActivity extends Activity {
 		 textColor = color;
 		 textColorPickerPreview.setBackgroundColor(color);
 	 }
-	
-	/**
-	 * Get float value of current selected font size.
-	 */
+
+    /**
+     * Get float value of current selected font size.
+     * @return Returns a the font size as a float.
+     */
 	private float getFontSize() {
 		int fontSize = inputFontSize.getProgress() + 16;
 		return (float) fontSize;
@@ -438,19 +445,19 @@ public class MainActivity extends Activity {
 	 */
 	private Typeface getTypeface() {
 		//TODO: Change this from a Spinner to a radio selection group, and each option shows a preview of the typeface.
-		
+
 		Map<String, Typeface> typefaceMap = new HashMap<String, Typeface>();
 		typefaceMap.put("Sans Serif", Typeface.DEFAULT);
 		typefaceMap.put("Sans Serif, Bold", Typeface.DEFAULT_BOLD);
 		typefaceMap.put("Monospace", Typeface.MONOSPACE);
 		typefaceMap.put("Serif", Typeface.SERIF);
-		
+
 		return typefaceMap.get((String) inputTypeface.getAdapter().getItem(inputTypeface.getSelectedItemPosition()));
 	}
 
-	/**
-	 * Loads the default[debug] boot image from the app's assets folder into memory / the preview pane.
-	 */
+    /**
+     * Loads the bootscreen graphic from the device into the app's editor.
+     */
 	private void loadImage() {
         // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
         BootscreenHelperCallback loadScreenCallback = new BootscreenHelperCallback() {

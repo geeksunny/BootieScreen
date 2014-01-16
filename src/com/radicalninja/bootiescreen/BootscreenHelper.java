@@ -1,8 +1,6 @@
 package com.radicalninja.bootiescreen;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
@@ -18,14 +16,13 @@ import java.util.concurrent.TimeoutException;
 
 public class BootscreenHelper {
 
+    private static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
+    private static final String FILENAME_WORKING_COPY = "clogo.bmp";
+    private static final String LOG_TAG = "BootscreenHelper";
     private Context mContext;
     private Bootscreen mBootscreen;
     private BootscreenHelperCallback mBootscreenHelperCallback;
     private String filePrefixDirectory;
-
-    private static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
-    private static final String FILENAME_WORKING_COPY = "clogo.bmp";
-    private static final String LOG_TAG = "BootscreenHelper";
 
 
     public BootscreenHelper(Context context) {
@@ -66,6 +63,85 @@ public class BootscreenHelper {
     }
 
     /**
+     * Checks the application's data directory for a given filename.
+     * @param filename The given filename to look for in application's data directory.
+     * @return Returns true if given filename exists, false otherwise.
+     */
+    public boolean fileExists(String filename) {
+
+        File file = new File(filePrefixDirectory+"/"+filename);
+        if (file.exists()) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
+     * Set the BootscreenHelper's current BootscreenHelperCallback object.
+     * @param callback The given BootscreenHelperCallback object to use.
+     * @return Returns the current BootscreenHelper object for method chaining.
+     */
+    public BootscreenHelper setCallback(BootscreenHelperCallback callback) {
+
+        mBootscreenHelperCallback = callback;
+        return this;
+    }
+
+    /**
+     * Invoke the successful response on the BootscreenHelper's callback object if one is set.
+     * @param message The given message to send to the successful response.
+     * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
+     */
+    private void callbackSuccess(String message, boolean destroyAfter) {
+
+        if (mBootscreenHelperCallback != null) {
+            mBootscreenHelperCallback
+                    .setSuccessMessage(message)
+                    .invokeSuccess();
+            if (destroyAfter) {
+                mBootscreenHelperCallback = null;
+            }
+        }
+    }
+
+    /**
+     * Invoke the failure response on the BootscreenHelper's callback object if one is set.
+     * @param message The given message to send to the failure response.
+     * @param flag The flag code that will be sent to .invokeFailure().
+     * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
+     */
+    private void callbackFailure(String message, int flag, boolean destroyAfter) {
+
+        if (mBootscreenHelperCallback != null) {
+            mBootscreenHelperCallback
+                    .setFailureMessage(message)
+                    .invokeFailure(flag);
+            if (destroyAfter) {
+                mBootscreenHelperCallback = null;
+            }
+        }
+    }
+
+    /**
+     * Invoke the neutral response on the BootscreenHelper's callback object if one is set.
+     * @param message The given message to send to the neutral response.
+     * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
+     */
+    private void callbackNeutral(String message, boolean destroyAfter) {
+
+        if (mBootscreenHelperCallback != null) {
+            mBootscreenHelperCallback
+                    .setNeutralMessage(message)
+                    .invokeNeutral();
+            if (destroyAfter) {
+                mBootscreenHelperCallback = null;
+            }
+        }
+    }
+
+    /**
      * Attempts to load the DEVICE_BACKUP bitmap into the Bootscreen object.
      *
      * If a BootscreenHelperCallback is set, it will invoke either success or failure based on the
@@ -101,120 +177,6 @@ public class BootscreenHelper {
         callbackSuccess("Device bitmap successfully loaded into editor!", true);
 
         return this;
-    }
-
-    public BootscreenHelper setCallback(BootscreenHelperCallback callback) {
-
-        mBootscreenHelperCallback = callback;
-        return this;
-    }
-
-    /**
-     * Checks the application's data directory for a given filename.
-     * @param filename The given filename to look for in application's data directory.
-     * @return Returns true if given filename exists, false otherwise.
-     */
-    public boolean fileExists(String filename) {
-
-        File file = new File(filePrefixDirectory+"/"+filename);
-        if (file.exists()) {
-            return true;
-        } else {
-            return false;
-        }
-
-    }
-
-    /**
-     * Retrieves the Bootscreen object for direct editing of personalization options.
-     *
-     * @return Returns the current Bootscreen object.
-     */
-    public Bootscreen getBootscreen() {
-
-        return mBootscreen;
-    }
-
-    /**
-     * Retrieves the Bootscreen object's current working Bitmap.
-     *
-     * @return Returns the Bootscreen's working copy Bitmap.
-     */
-    public Bitmap getBitmap() {
-
-        return mBootscreen.getBitmap();
-    }
-
-    /**
-     * Check's to see if a file exists in the app's data and subsequently attempts to delete it.
-     * @param filename The given filename to look for in application's data directory.
-     * @return Returns true if "ALL CLEAR!"; the file did not exist or was successfully deleted, false if a deletion attempt had failed.
-     */
-    public boolean deleteFileIfExists(String filename) {
-
-        File file = new File(filePrefixDirectory+"/"+filename);
-        if (file.exists()) {
-            if (file.delete()) {
-                Log.i(LOG_TAG, "File deleted: "+filename);
-                return true;
-            } else {
-                Log.e(LOG_TAG, "File could not be deleted!");
-                return false;
-            }
-        } else {
-            Log.i(LOG_TAG, "File does not exist: "+filename);
-            return true;
-        }
-
-    }
-
-    /**
-     * A method for retrieving the DEVICE_BACKUP's file content into a Bitmap object.
-     * @param shouldPullFromDeviceIfNoneOnFile A boolean value on whether or not we should pull the file from the device if one is not in the filesystem.
-     * @return Returns a Bitmap object with the contents of the DEVICE_BACKUP file, or null if something went wrong.
-     */
-    public Bitmap bitmapFromDeviceBackup(boolean shouldPullFromDeviceIfNoneOnFile) {
-
-        if (fileExists(FILENAME_DEVICE_BACKUP)) {
-            Bitmap bitmap = BitmapFactory.decodeFile(filePrefixDirectory + "/" + FILENAME_DEVICE_BACKUP);
-            return bitmap;
-        } else {
-            if (shouldPullFromDeviceIfNoneOnFile) {
-                if (pullBootscreenFromDevice(false)) {
-                    Log.i(LOG_TAG, "Bootscreen is in the process of being backed up right now! The canvas will update when it finishes.");
-                    return Bootscreen.createEmptyBitmap();
-                } else {
-                    Log.e(LOG_TAG, "Bootscreen could not be successfully pulled from the device!");
-                    Log.i(LOG_TAG, "Creating a new empty bitmap!");
-                    return Bootscreen.createEmptyBitmap();
-                }
-            }
-        }
-        // If we've somehow managed to get here, return an empty bitmap.
-        Log.e(LOG_TAG, "bitmapFromDeviceBackup() FAIL STATE!");
-        return Bootscreen.createEmptyBitmap();
-
-    }
-
-    /**
-     * Utilizes com.ultrasonic.android.image.bitmap.util to save a .bmp file to the SD card.
-     * @return Returns true on confirmed existence of the new .bmp file.
-     */
-    public boolean saveBitmap() {
-
-        // Delete any existing workingCopy .bmp file to ensure we are working with a clean slate.
-        if (!deleteFileIfExists(FILENAME_WORKING_COPY)) {
-            Log.e(LOG_TAG, "Could not delete an existing "+FILENAME_WORKING_COPY+" file.");
-            return false;
-        }
-        // Compress and save workingCopy Bitmap to WORKING_COPY.
-        AndroidBmpUtil bmpUtil = new AndroidBmpUtil();
-        boolean isSaveResult = bmpUtil.save(mBootscreen.getBitmap(), filePrefixDirectory+"/"+FILENAME_WORKING_COPY);
-        if (isSaveResult && fileExists(FILENAME_WORKING_COPY)) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -293,72 +255,46 @@ public class BootscreenHelper {
     }
 
     /**
-     * Pushes the customized bootscreen to your device. Writes the WORKING_COPY .bmp file to clogo.
-     * @return Returns a boolean true if the procedure succeeds without a hitch, and false if otherwise.
+     * Check's to see if a file exists in the app's data and subsequently attempts to delete it.
+     * @param filename The given filename to look for in application's data directory.
+     * @return Returns true if "ALL CLEAR!"; the file did not exist or was successfully deleted, false if a deletion attempt had failed.
      */
-    private boolean pushBootscreenToDevice() {
+    public boolean deleteFileIfExists(String filename) {
 
-        // Last-minute verification that the WORKING_COPY file does indeed exist. We don't want to attempt to write any weird null data to the block device!
-        if (!fileExists(FILENAME_WORKING_COPY)) {
-            Log.e(LOG_TAG, "CHOKE! We somehow have gotten to the pushBootscreenToDevice() stage and don't have a working copy on disk! INVESTIGATE");
-            callbackFailure("There was a problem saving your bitmap. The bootscreen was not installed.",
-                            BootscreenHelperCallback.FLAG_BITMAP_NOT_SAVED, true);
-            return false;
-        }
-        // Checking for Root access.
-        if (RootTools.isAccessGiven()) {
-            Log.i(LOG_TAG, "Root granted! About to PUSH bitmap...");
-            String cmd = String.format("dd if=%s/%s of=/dev/block/platform/msm_sdcc.1/by-name/clogo", filePrefixDirectory, FILENAME_WORKING_COPY);
-            Log.i(LOG_TAG, "About to run this command...");
-            Log.i(LOG_TAG, cmd);
-            Command command = new Command(0, cmd) {
-
-                @Override
-                public void commandCompleted(int arg0, int arg1) { }
-
-                @Override
-                public void commandOutput(int id, String line) {
-                    if (id == 0) {
-                        Log.i(LOG_TAG, "Command finished! This is the output!");
-                    }
-                    Log.i(LOG_TAG, id+": "+line);
-                }
-
-                @Override
-                public void commandTerminated(int arg0, String arg1) { }
-            };
-            try {
-                RootTools.getShell(true).add(command);
-            } catch (IOException e) {
-                // TODO: Log this to error log when implemented
-                Log.i(LOG_TAG, "IOException!!");
-                e.printStackTrace();
-                callbackFailure("Bootscreen graphic could not be pushed to the device. [IOException]",
-                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
-                return false;
-            } catch (TimeoutException e) {
-                // TODO: Log this to error log when implemented
-                Log.i(LOG_TAG, "TimeoutException!!");
-                e.printStackTrace();
-                callbackFailure("Bootscreen graphic could not be pushed to the device. Could not get root rights.",
-                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
-                return false;
-            } catch (RootDeniedException e) {
-                // TODO: Log this to error log when implemented
-                Log.i(LOG_TAG, "RootDeniedException!!");
-                e.printStackTrace();
-                callbackFailure("Bootscreen graphic could not be pushed to the device. Could not get root rights.",
-                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
+        File file = new File(filePrefixDirectory+"/"+filename);
+        if (file.exists()) {
+            if (file.delete()) {
+                Log.i(LOG_TAG, "File deleted: "+filename);
+                return true;
+            } else {
+                Log.e(LOG_TAG, "File could not be deleted!");
                 return false;
             }
         } else {
-            Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
-            callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.",
-                    BootscreenHelperCallback.FLAG_NO_ROOT_RIGHTS, true);
-            return false;
+            Log.i(LOG_TAG, "File does not exist: "+filename);
+            return true;
         }
 
-        return true;
+    }
+
+    /**
+     * Retrieves the Bootscreen object for direct editing of personalization options.
+     *
+     * @return Returns the current Bootscreen object.
+     */
+    public Bootscreen getBootscreen() {
+
+        return mBootscreen;
+    }
+
+    /**
+     * Retrieves the Bootscreen object's current working Bitmap.
+     *
+     * @return Returns the Bootscreen's working copy Bitmap.
+     */
+    public Bitmap getBitmap() {
+
+        return mBootscreen.getBitmap();
     }
 
     /**
@@ -455,54 +391,92 @@ public class BootscreenHelper {
     }
 
     /**
-     * Invoke the successful response on the BootscreenHelper's callback object if one is set.
-     * @param message The given message to send to the successful response.
-     * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
+     * Pushes the customized bootscreen to your device. Writes the WORKING_COPY .bmp file to clogo.
+     * @return Returns a boolean true if the procedure succeeds without a hitch, and false if otherwise.
      */
-    private void callbackSuccess(String message, boolean destroyAfter) {
-        
-        if (mBootscreenHelperCallback != null) {
-            mBootscreenHelperCallback
-                    .setSuccessMessage(message)
-                    .invokeSuccess();
-            if (destroyAfter) {
-                mBootscreenHelperCallback = null;
-            }
+    private boolean pushBootscreenToDevice() {
+
+        // Last-minute verification that the WORKING_COPY file does indeed exist. We don't want to attempt to write any weird null data to the block device!
+        if (!fileExists(FILENAME_WORKING_COPY)) {
+            Log.e(LOG_TAG, "CHOKE! We somehow have gotten to the pushBootscreenToDevice() stage and don't have a working copy on disk! INVESTIGATE");
+            callbackFailure("There was a problem saving your bitmap. The bootscreen was not installed.",
+                            BootscreenHelperCallback.FLAG_BITMAP_NOT_SAVED, true);
+            return false;
         }
+        // Checking for Root access.
+        if (RootTools.isAccessGiven()) {
+            Log.i(LOG_TAG, "Root granted! About to PUSH bitmap...");
+            String cmd = String.format("dd if=%s/%s of=/dev/block/platform/msm_sdcc.1/by-name/clogo", filePrefixDirectory, FILENAME_WORKING_COPY);
+            Log.i(LOG_TAG, "About to run this command...");
+            Log.i(LOG_TAG, cmd);
+            Command command = new Command(0, cmd) {
+
+                @Override
+                public void commandCompleted(int arg0, int arg1) { }
+
+                @Override
+                public void commandOutput(int id, String line) {
+                    if (id == 0) {
+                        Log.i(LOG_TAG, "Command finished! This is the output!");
+                    }
+                    Log.i(LOG_TAG, id+": "+line);
+                }
+
+                @Override
+                public void commandTerminated(int arg0, String arg1) { }
+            };
+            try {
+                RootTools.getShell(true).add(command);
+            } catch (IOException e) {
+                // TODO: Log this to error log when implemented
+                Log.i(LOG_TAG, "IOException!!");
+                e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be pushed to the device. [IOException]",
+                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
+                return false;
+            } catch (TimeoutException e) {
+                // TODO: Log this to error log when implemented
+                Log.i(LOG_TAG, "TimeoutException!!");
+                e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be pushed to the device. Could not get root rights.",
+                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
+                return false;
+            } catch (RootDeniedException e) {
+                // TODO: Log this to error log when implemented
+                Log.i(LOG_TAG, "RootDeniedException!!");
+                e.printStackTrace();
+                callbackFailure("Bootscreen graphic could not be pushed to the device. Could not get root rights.",
+                        BootscreenHelperCallback.FLAG_EXCEPTION, true);
+                return false;
+            }
+        } else {
+            Log.e(LOG_TAG, "COULD NOT GET ROOT RIGHTS!!");
+            callbackFailure("Bootscreen graphic could not be pulled from the device. Could not get root rights.",
+                    BootscreenHelperCallback.FLAG_NO_ROOT_RIGHTS, true);
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * Invoke the failure response on the BootscreenHelper's callback object if one is set.
-     * @param message The given message to send to the failure response.
-     * @param flag The flag code that will be sent to .invokeFailure().
-     * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
+     * Utilizes com.ultrasonic.android.image.bitmap.util to save a .bmp file to the SD card.
+     * @return Returns true on confirmed existence of the new .bmp file.
      */
-    private void callbackFailure(String message, int flag, boolean destroyAfter) {
+    public boolean saveBitmap() {
 
-        if (mBootscreenHelperCallback != null) {
-            mBootscreenHelperCallback
-                    .setFailureMessage(message)
-                    .invokeFailure(flag);
-            if (destroyAfter) {
-                mBootscreenHelperCallback = null;
-            }
+        // Delete any existing workingCopy .bmp file to ensure we are working with a clean slate.
+        if (!deleteFileIfExists(FILENAME_WORKING_COPY)) {
+            Log.e(LOG_TAG, "Could not delete an existing "+FILENAME_WORKING_COPY+" file.");
+            return false;
         }
-    }
-
-    /**
-     * Invoke the neutral response on the BootscreenHelper's callback object if one is set.
-     * @param message The given message to send to the neutral response.
-     * @param destroyAfter If true, the BootscreenHelper's callback object will be destroyed after use.
-     */
-    private void callbackNeutral(String message, boolean destroyAfter) {
-
-        if (mBootscreenHelperCallback != null) {
-            mBootscreenHelperCallback
-                    .setNeutralMessage(message)
-                    .invokeNeutral();
-            if (destroyAfter) {
-                mBootscreenHelperCallback = null;
-            }
+        // Compress and save workingCopy Bitmap to WORKING_COPY.
+        AndroidBmpUtil bmpUtil = new AndroidBmpUtil();
+        boolean isSaveResult = bmpUtil.save(mBootscreen.getBitmap(), filePrefixDirectory+"/"+FILENAME_WORKING_COPY);
+        if (isSaveResult && fileExists(FILENAME_WORKING_COPY)) {
+            return true;
+        } else {
+            return false;
         }
     }
 }

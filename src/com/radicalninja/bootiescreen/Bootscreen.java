@@ -8,16 +8,13 @@ import android.graphics.Typeface;
 
 public class Bootscreen extends Canvas {
 	
-	// TODO: Fix up noRootRights messages to be more descriptive.
-	private Context mContext;
-	
-	private Bitmap mOriginalState;
-	private Bitmap mWorkingCopy;
-	private Paint mPainter;
-
 	private static final int BOOTSCREEN_RESOLUTION_WIDTH = 720;
 	private static final int BOOTSCREEN_RESOLUTION_HEIGHT = 1280;
 	private static final String LOG_TAG = "Bootscreen";
+	private Context mContext;
+	private Bitmap mOriginalState;
+	private Bitmap mWorkingCopy;
+	private Paint mPainter;
 	
 	/**
 	 * Constructor method that takes the active application Context object.
@@ -42,48 +39,18 @@ public class Bootscreen extends Canvas {
 	}
 	
 	/**
-	 * Constructor method that accepts a Bitmap object. The mOriginalState & mWorkingCopy member Bitmap objects get set to this given Bitmap object.
-	 * 
-	 * @param bitmap The given bitmap object to initialize the canvas with.
-	 * @param context The app's active Context object to utilize with member method operations.
-	 */
-	public Bootscreen(Bitmap bitmap, Context context) {
-		
-		super(bitmap);
-		// Storing the application context & parent view variables.
-		mContext = context;
-		// Backing up this bitmap for easy reverting.
-		mOriginalState = bitmap.copy(bitmap.getConfig(), false);
-		// Creating a self-contained working copy Bitmap
-		setWorkingBitmap(bitmap.copy(bitmap.getConfig(), true));
-		// Creating the mPainter and initializing the default settings.
-		mPainter = new Paint();
-		mPainter.setAntiAlias(true);
-		mPainter.setTextAlign(Paint.Align.CENTER);
-		mPainter.setHinting(Paint.HINTING_ON);
-		mPainter.setSubpixelText(true);
-	}
-	
-	/**
-	 * Getter method for accessing the current mWorkingCopy Bitmap object.
-	 * @return Returns the bootscreen's mWorkingCopy Bitmap object.
-	 */
-	public Bitmap getBitmap() {
-		
-		return mWorkingCopy;
-	}
-	
-	/**
-	 * Resets the bootscreen's mWorkingCopy Bitmap object to it's mOriginalState.
-     *
+	 * Set's the Bootscreen's active working copy bitmap object as well as the Bootscreen's active bitmap to draw in to. If a parent ImageView object is set, redraw the view.
+	 *
+	 * @param bitmap The given mutable Bitmap object.
      * @return Returns a reference to itself for method chaining.
 	 */
-	public Bootscreen resetBitmap() {
-		
-		setWorkingBitmap(mOriginalState.copy(mOriginalState.getConfig(), true));
+	public Bootscreen setWorkingBitmap(Bitmap bitmap) {
+
+		mWorkingCopy = bitmap;
+		super.setBitmap(mWorkingCopy);
         return this;
 	}
-
+	
     /**
      * Convenience method for quickly creating an empty Bitmap object.
      * @return Returns an empty Bitmap object at the resolution specified by the object's constants.
@@ -92,27 +59,34 @@ public class Bootscreen extends Canvas {
         return Bitmap.createBitmap(BOOTSCREEN_RESOLUTION_WIDTH, BOOTSCREEN_RESOLUTION_HEIGHT, Bitmap.Config.ARGB_8888);
     }
 
+	/**
+	 * Getter method for accessing the current mWorkingCopy Bitmap object.
+	 * @return Returns the bootscreen's mWorkingCopy Bitmap object.
+	 */
+	public Bitmap getBitmap() {
+
+		return mWorkingCopy;
+	}
+
+	/**
+	 * Resets the bootscreen's mWorkingCopy Bitmap object to it's mOriginalState.
+     *
+     * @return Returns a reference to itself for method chaining.
+	 */
+	public Bootscreen resetBitmap() {
+
+		setWorkingBitmap(mOriginalState.copy(mOriginalState.getConfig(), true));
+        return this;
+	}
+	
     /**
 	 * Set's the bootscreen's mPainter object's color to the given value.
 	 * @param color An integer value for the Painter's color.
      * @return Returns a reference to itself for method chaining.
 	 */
 	public Bootscreen setColor(int color) {
-		
+
 		mPainter.setColor(color);
-        return this;
-	}
-	
-	/**
-	 * Set's the Bootscreen's active working copy bitmap object as well as the Bootscreen's active bitmap to draw in to. If a parent ImageView object is set, redraw the view.
-	 * 
-	 * @param bitmap The given mutable Bitmap object.
-     * @return Returns a reference to itself for method chaining.
-	 */
-	public Bootscreen setWorkingBitmap(Bitmap bitmap) {
-		
-		mWorkingCopy = bitmap;
-		super.setBitmap(mWorkingCopy);
         return this;
 	}
 

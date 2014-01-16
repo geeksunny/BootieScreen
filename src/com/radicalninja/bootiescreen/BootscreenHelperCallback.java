@@ -6,10 +6,6 @@ package com.radicalninja.bootiescreen;
  */
 abstract class BootscreenHelperCallback {
 
-    private String mSuccessMessage;
-    private String mFailureMessage;
-    private String mNeutralMessage;
-
     /**
      * Flag for encountering a situation where we cannot get root rights.
      */
@@ -30,6 +26,10 @@ abstract class BootscreenHelperCallback {
      * Flag for encountering a situation where the bitmap file is missing.
      */
     public static final int FLAG_BITMAP_MISSING = 1004;
+
+    private String mSuccessMessage;
+    private String mFailureMessage;
+    private String mNeutralMessage;
 
     /**
      * Set the success message.
@@ -68,21 +68,6 @@ abstract class BootscreenHelperCallback {
     }
 
     /**
-     * Called when the BootscreenHelper's action had a successful outcome.
-     *
-     * @param successMessage A success message provided by BootscreenHelper's current action.
-     */
-    abstract void onSuccess(String successMessage);
-
-    /**
-     * Called when the BootscreenHelper's action had a failed outcome.
-     *
-     * @param failureMessage A failure message provided by BootscreenHelper's current action.
-     * @param flag An integer value representing the current state of error.
-     */
-    abstract void onFailure(String failureMessage, int flag);
-
-    /**
      * Called when the BootscreenHelper's action had a neutral outcome.
      *
      * @param neutralMessage A neutral message provided by BootscreenHelper's current action.
@@ -101,6 +86,13 @@ abstract class BootscreenHelperCallback {
     }
 
     /**
+     * Called when the BootscreenHelper's action had a successful outcome.
+     *
+     * @param successMessage A success message provided by BootscreenHelper's current action.
+     */
+    abstract void onSuccess(String successMessage);
+
+    /**
      * Invoke the abstract failure method in this object.
      *
      * @return Returns the current BootscreenHelperCallback object for method chaining.
@@ -110,6 +102,14 @@ abstract class BootscreenHelperCallback {
         onFailure(mFailureMessage, flag);
         return this;
     }
+
+    /**
+     * Called when the BootscreenHelper's action had a failed outcome.
+     *
+     * @param failureMessage A failure message provided by BootscreenHelper's current action.
+     * @param flag An integer value representing the current state of error.
+     */
+    abstract void onFailure(String failureMessage, int flag);
 
     /**
      * Invoke the abstract neutral method in this object.

@@ -340,14 +340,14 @@ public class BootscreenHelper {
                 // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "TimeoutException!!");
                 e.printStackTrace();
-                callbackFailure("Bootscreen graphic could not be pushed to the device. [IOException]",
+                callbackFailure("Bootscreen graphic could not be pushed to the device. Could not get root rights.",
                         BootscreenHelperCallback.FLAG_EXCEPTION, true);
                 return false;
             } catch (RootDeniedException e) {
                 // TODO: Log this to error log when implemented
                 Log.i(LOG_TAG, "RootDeniedException!!");
                 e.printStackTrace();
-                callbackFailure("Bootscreen graphic could not be pushed to the device. [IOException]",
+                callbackFailure("Bootscreen graphic could not be pushed to the device. Could not get root rights.",
                         BootscreenHelperCallback.FLAG_EXCEPTION, true);
                 return false;
             }

@@ -39,12 +39,13 @@ public class MainActivity extends Activity {
 	final MainActivity parent = this;
 	private static final String LOG_TAG = "MainActivity";
 	private static final String PREFS_NAME = "BootscreenPrefs";
-	
+
 	DrawerLayout drawerLayout;
+    ActionBarDrawerToggle mDrawerToggle;
 	FrameLayout leftDrawer;
 	ImageView previewView;
-	Bootscreen bootscreen;
-	
+	BootscreenHelper mBootscreenHelper;
+
 	EditText inputMessage;
 	SeekBar inputFontSize;
 	TextView textFontSizeValue;
@@ -52,7 +53,7 @@ public class MainActivity extends Activity {
 	Button buttonColorPicker;
 	Button buttonPreview;
 	Button buttonSave;
-	
+
 	Integer textColor;
 	TextView textColorPickerPreview;
 
@@ -73,17 +74,17 @@ public class MainActivity extends Activity {
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setHomeButtonEnabled(true);
 		drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-		final ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
+		mDrawerToggle = new ActionBarDrawerToggle(
 				this,
 				drawerLayout,
 				R.drawable.ic_navigation_drawer,
 				R.string.actionBarContentOpen,
 				R.string.actionBarContentClose) {
-			
+
 			public void onDrawerClosed(View drawerView) {
 				invalidateOptionsMenu();
 			}
-			
+
 			public void onDrawerOpened(View drawerView) {
 				invalidateOptionsMenu();
 			}
@@ -91,24 +92,24 @@ public class MainActivity extends Activity {
 		drawerLayout.post(new Runnable() {
 			@Override
 			public void run() {
-				mDrawerToggle.syncState();
+				parent.mDrawerToggle.syncState();
 			}
 		});
 		drawerLayout.setDrawerListener(mDrawerToggle);
-		
+
 		previewView = (ImageView) findViewById(R.id.imagePreview);
 		inputMessage = (EditText) findViewById(R.id.inputMessage);
 		// - Font Size Selection
 		inputFontSize = (SeekBar) findViewById(R.id.inputFontSize);
 		textFontSizeValue = (TextView) findViewById(R.id.textFontSizeValue);
 		inputFontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-			
+
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) { }
-			
+
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) { }
-			
+
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				textFontSizeValue.setText(String.format("%ddp", (int) parent.getFontSize() ));
@@ -147,21 +148,21 @@ public class MainActivity extends Activity {
 		int inputTypefacePos = settings.getInt("inputTypefacePos", 0);
 		if (inputTypeface.getCount() >= inputTypefacePos) {
 			// Ensures that we don't try to select an item outside the list's bounds. Should probably be handled by a try / catch?
-			inputTypeface.setSelection(inputTypefacePos);			
+			inputTypeface.setSelection(inputTypefacePos);
 		}
 	}
-	
+
 	@Override
 	public void onStart() {
-		
+
 		super.onStart();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage();
 	}
-	
+
 	@Override
 	public void onResume() {
-		
+
 		super.onResume();
 		// Reset bitmap to original state.
 		//bootscreen.
@@ -199,24 +200,27 @@ public class MainActivity extends Activity {
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+
+        // Trigger the navigation drawer by tapping the action bar title/icon.
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
 		// Handle menu item selection
 		switch (item.getItemId()) {
 		case R.id.action_restoreBackup:
-			
+
 			// AlertDialogs for handling the result of the installation procedure.
-			DialogInterface.OnClickListener handleRestorationOutcome = new DialogInterface.OnClickListener() {
+			final DialogInterface.OnClickListener handleRestorationOutcome = new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						// YES (Success)
-						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", false).commit();
 						RootHelper.restartDevice();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// NO (Success)
 						Toast.makeText(parent, "Restoration SUCCESS!", Toast.LENGTH_SHORT).show();
-						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", false).commit();
 						invalidateOptionsMenu();
 						break;
 					case DialogInterface.BUTTON_NEUTRAL:
@@ -226,27 +230,34 @@ public class MainActivity extends Activity {
 					}
 				}
 			};
-			// - SUCCESSFUL INSTALLTION AlertDialog
-			final AlertDialog.Builder handleRestorationSuccess = new AlertDialog.Builder(parent);
-			handleRestorationSuccess
-				.setMessage("Your device's original bootscreen was successfully installed! Would you like to reboot now and test it out?")
-				.setPositiveButton("Yes", handleRestorationOutcome)
-				.setNegativeButton("No", handleRestorationOutcome);
-			// - FAILED INSTALLATION AlertDialog
-			final AlertDialog.Builder handleRestorationFailure = new AlertDialog.Builder(parent);
-			handleRestorationFailure
-				.setMessage("Unfortunately it looks like your bootscreen could not be installed! Check the logs and submit a bug report or try again later!")
-				.setNeutralButton("Ok", handleRestorationOutcome);
-			// - NO ROOT OnDismissListener
-			final DialogInterface.OnDismissListener handleNoRootRights = new DialogInterface.OnDismissListener() {
-				
-				@Override
-				public void onDismiss(DialogInterface dialog) {
-					Toast.makeText(parent, "Could not get Root rights!", Toast.LENGTH_SHORT).show();
-					//drawerLayout.closeDrawer(leftDrawer);
-				}
-			};
-			
+            final BootscreenHelperCallback restorationCallback = new BootscreenHelperCallback() {
+                @Override
+                void onSuccess(String successMessage) {
+                    getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", false).commit();
+                    final AlertDialog.Builder handleRestorationSuccess = new AlertDialog.Builder(parent);
+                    handleRestorationSuccess
+                            .setMessage("Your device's original bootscreen was successfully installed! Would you like to reboot now and test it out?")
+                            .setPositiveButton("Yes", handleRestorationOutcome)
+                            .setNegativeButton("No", handleRestorationOutcome)
+                            .show();
+                }
+
+                @Override
+                void onFailure(String failureMessage, int flag) {
+                    // TODO: Possibly add in code that conditions the response based on the flag. If that appears to be necessary.
+                    final AlertDialog.Builder handleRestorationFailure = new AlertDialog.Builder(parent);
+                    handleRestorationFailure
+                            .setTitle("Restoration Failure")
+                            .setIcon(android.R.drawable.stat_sys_warning)
+                            .setMessage(failureMessage)
+                            .setNeutralButton("Ok", handleRestorationOutcome)
+                            .show();
+                }
+
+                @Override
+                void onNeutral(String neutralMessage) { }
+            };
+
 			// AlertDialog for proceeding with the bootscreen installation.
 			DialogInterface.OnClickListener doRestoration = new DialogInterface.OnClickListener() {
 				@Override
@@ -255,11 +266,13 @@ public class MainActivity extends Activity {
 					case DialogInterface.BUTTON_POSITIVE:
 						// Yes button clicked
 						saveSettings();
-						bootscreen.restoreDeviceOriginalBootscreen(handleRestorationSuccess, handleRestorationFailure, handleNoRootRights);
+						mBootscreenHelper
+                                .setCallback(restorationCallback)
+                                .restoreDeviceOriginalBootscreen();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// No button clicked
-						Toast.makeText(parent, "Restoration was CANCELLED!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(parent, "Restoration CANCELLED!", Toast.LENGTH_SHORT).show();
 						break;
 					}
 				}
@@ -271,7 +284,7 @@ public class MainActivity extends Activity {
 				.setNegativeButton("No", doRestoration)
 				.show();
 
-			
+
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -281,17 +294,20 @@ public class MainActivity extends Activity {
 	/**
 	 * OnClickListener for the Preview button
 	 */
-	OnClickListener previewButtonClicked = new OnClickListener() {
+	private OnClickListener previewButtonClicked = new OnClickListener() {
 		public void onClick(View v) {
 
+            Bootscreen bootscreen = mBootscreenHelper.getBootscreen();
 			// Reset the bootscreen to its original state for a new preview.
-			bootscreen.resetBitmap();
+            bootscreen.resetBitmap();
 			// Update settings for the bootscreen.
-			bootscreen.setTextSize(getFontSize());
-			bootscreen.setColor(textColor);
-			bootscreen.setTypeface(getTypeface());
+            bootscreen
+                    .setTextSize(getFontSize())
+                    .setColor(textColor)
+                    .setTypeface(getTypeface());
 			// Write to the bootscreen.
-			bootscreen.doPersonalizationAndRedraw(inputMessage.getText().toString());
+            bootscreen.doPersonalization(inputMessage.getText().toString());
+            previewView.setImageBitmap(bootscreen.getBitmap());
 			// Open the preview pane.
 			drawerLayout.openDrawer(leftDrawer);
 		}
@@ -300,24 +316,22 @@ public class MainActivity extends Activity {
 	/**
 	 * OnClickListener for the Save button
 	 */
-	OnClickListener saveButtonClicked = new OnClickListener() {
+	private OnClickListener saveButtonClicked = new OnClickListener() {
 
 		public void onClick(View v) {
-			
+
 			// AlertDialogs for handling the result of the installation procedure.
-			DialogInterface.OnClickListener handleInstallationOutcome = new DialogInterface.OnClickListener() {
+			final DialogInterface.OnClickListener handleInstallationOutcome = new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						// YES (Success)
-						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", true).commit();
 						RootHelper.restartDevice();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// NO (Success)
 						Toast.makeText(parent, "Installation SUCCESS!", Toast.LENGTH_SHORT).show();
-						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", true).commit();
 						invalidateOptionsMenu();
 						drawerLayout.closeDrawer(leftDrawer);
 						break;
@@ -329,28 +343,36 @@ public class MainActivity extends Activity {
 					}
 				}
 			};
-			// - SUCCESSFUL INSTALLTION AlertDialog
-			final AlertDialog.Builder handleInstallationSuccess = new AlertDialog.Builder(parent);
-			handleInstallationSuccess
-				.setMessage("Your personalized bootscreen was successfully installed! Would you like to reboot now and test it out?")
-				.setPositiveButton("Yes", handleInstallationOutcome)
-				.setNegativeButton("No", handleInstallationOutcome);
-			// - FAILED INSTALLATION AlertDialog
-			final AlertDialog.Builder handleInstallationFailure = new AlertDialog.Builder(parent);
-			handleInstallationFailure
-				.setMessage("Unfortunately it looks like your bootscreen could not be installed! Check the logs and submit a bug report or try again later!")
-				.setNeutralButton("Ok", handleInstallationOutcome);
-			// - NO ROOT OnDismissListener
-			final DialogInterface.OnDismissListener handleNoRootRights = new DialogInterface.OnDismissListener() {
-				
-				@Override
-				public void onDismiss(DialogInterface dialog) {
-					Toast.makeText(parent, "Could not get Root rights!", Toast.LENGTH_SHORT).show();
-					//drawerLayout.closeDrawer(leftDrawer);
-				}
-			};
-			
-			// AlertDialog for proceeding with the bootscreen installation.
+            final BootscreenHelperCallback installationCallback = new BootscreenHelperCallback() {
+                @Override
+                void onSuccess(String successMessage) {
+                    // - SUCCESSFUL INSTALLTION AlertDialog
+                    getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", true).commit();
+                    final AlertDialog.Builder handleInstallationSuccess = new AlertDialog.Builder(parent);
+                    handleInstallationSuccess
+                            .setMessage("Your personalized bootscreen was successfully installed! Would you like to reboot now and test it out?")
+                            .setPositiveButton("Yes", handleInstallationOutcome)
+                            .setNegativeButton("No", handleInstallationOutcome)
+                            .show();
+                }
+
+                @Override
+                void onFailure(String failureMessage, int flag) {
+                    // TODO: Possibly add in code that conditions the response based on the flag. If that appears to be necessary.
+                    final AlertDialog.Builder handleInstallationFailure = new AlertDialog.Builder(parent);
+                    handleInstallationFailure
+                            .setTitle("Installation Failure")
+                            .setIcon(android.R.drawable.stat_sys_warning)
+                            .setMessage(failureMessage)
+                            .setNeutralButton("Ok", handleInstallationOutcome)
+                            .show();
+                }
+
+                @Override
+                void onNeutral(String neutralMessage) { }
+            };
+
+			// This AlertDialog will be shown to the user first.
 			DialogInterface.OnClickListener doInstallation = new DialogInterface.OnClickListener() {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
@@ -358,11 +380,13 @@ public class MainActivity extends Activity {
 					case DialogInterface.BUTTON_POSITIVE:
 						// Yes button clicked
 						saveSettings();
-						bootscreen.installPersonalizedBootscreen(handleInstallationSuccess, handleInstallationFailure, handleNoRootRights);
+						mBootscreenHelper
+                                .setCallback(installationCallback)
+                                .installPersonalizedBootscreen();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// No button clicked
-						Toast.makeText(parent, "Installation was CANCELLED!", Toast.LENGTH_SHORT).show();
+						Toast.makeText(parent, "Installation CANCELLED!", Toast.LENGTH_SHORT).show();
 						drawerLayout.closeDrawer(leftDrawer);
 						break;
 					}
@@ -380,7 +404,7 @@ public class MainActivity extends Activity {
 	/**
 	 * Calling forth a color picker!
 	 */
-	OnClickListener colorPicker = new OnClickListener() {
+	private OnClickListener colorPicker = new OnClickListener() {
 		public void onClick(View v) {
 			final ColorDialogBuilder builder = new ColorDialogBuilder(parent);
 			builder.setCancelable(true);
@@ -392,7 +416,7 @@ public class MainActivity extends Activity {
 					Log.i(LOG_TAG, "Color picker was success!");
 					updateTextColor(builder.getColorPicker().getColor());
 				}
-				
+
 			});
 			builder.create().show();
 		}
@@ -406,10 +430,11 @@ public class MainActivity extends Activity {
 		 textColor = color;
 		 textColorPickerPreview.setBackgroundColor(color);
 	 }
-	
-	/**
-	 * Get float value of current selected font size.
-	 */
+
+    /**
+     * Get float value of current selected font size.
+     * @return Returns a the font size as a float.
+     */
 	private float getFontSize() {
 		int fontSize = inputFontSize.getProgress() + 16;
 		return (float) fontSize;
@@ -420,26 +445,44 @@ public class MainActivity extends Activity {
 	 */
 	private Typeface getTypeface() {
 		//TODO: Change this from a Spinner to a radio selection group, and each option shows a preview of the typeface.
-		
+
 		Map<String, Typeface> typefaceMap = new HashMap<String, Typeface>();
 		typefaceMap.put("Sans Serif", Typeface.DEFAULT);
 		typefaceMap.put("Sans Serif, Bold", Typeface.DEFAULT_BOLD);
 		typefaceMap.put("Monospace", Typeface.MONOSPACE);
 		typefaceMap.put("Serif", Typeface.SERIF);
-		
+
 		return typefaceMap.get((String) inputTypeface.getAdapter().getItem(inputTypeface.getSelectedItemPosition()));
 	}
 
-	/**
-	 * Loads the default[debug] boot image from the app's assets folder into memory / the preview pane.
-	 */
+    /**
+     * Loads the bootscreen graphic from the device into the app's editor.
+     */
 	private void loadImage() {
+        // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
+        BootscreenHelperCallback loadScreenCallback = new BootscreenHelperCallback() {
+            @Override
+            void onSuccess(String successMessage) {
+                Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            void onFailure(String failureMessage, int flag) {
+                Toast.makeText(getApplicationContext(), failureMessage, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            void onNeutral(String neutralMessage) { }
+        };
 		// Load the bitmap into the Bootscreen object
-		bootscreen = new Bootscreen(parent, previewView);
+		mBootscreenHelper = new BootscreenHelper(parent)
+                .setCallback(loadScreenCallback)
+                .loadDeviceBootscreen();
+        previewView.setImageBitmap(mBootscreenHelper.getBitmap());
 	}
 
 	/**
-	 * Loads the given {@link com.android.graphics.Bitmap} into memory / the preview pane.
+	 * Loads the given com.android.graphics.Bitmap into memory / the preview pane.
 	 * @param	bitmap	The given Bitmap object to load.
 	 */
 	private void loadImage(Bitmap bitmap) {

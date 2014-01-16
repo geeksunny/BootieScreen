@@ -321,13 +321,11 @@ public class MainActivity extends Activity {
 					switch (which) {
 					case DialogInterface.BUTTON_POSITIVE:
 						// YES (Success)
-						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", true).commit();
 						RootHelper.restartDevice();
 						break;
 					case DialogInterface.BUTTON_NEGATIVE:
 						// NO (Success)
 						Toast.makeText(parent, "Installation SUCCESS!", Toast.LENGTH_SHORT).show();
-						getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", true).commit();
 						invalidateOptionsMenu();
 						drawerLayout.closeDrawer(leftDrawer);
 						break;
@@ -343,6 +341,7 @@ public class MainActivity extends Activity {
                 @Override
                 void onSuccess(String successMessage) {
                     // - SUCCESSFUL INSTALLTION AlertDialog
+                    getSharedPreferences(PREFS_NAME, 0).edit().putBoolean("bootscreenIsCustomized", true).commit();
                     final AlertDialog.Builder handleInstallationSuccess = new AlertDialog.Builder(parent);
                     handleInstallationSuccess
                             .setMessage("Your personalized bootscreen was successfully installed! Would you like to reboot now and test it out?")

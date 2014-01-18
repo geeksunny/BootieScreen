@@ -47,6 +47,8 @@ public class MainActivity extends Activity {
     private static final int DEFAULT_FONT_SIZE = 36;
     private static final int DEFAULT_COLOR = Color.BLACK;
     private static final int DEFAULT_TYPEFACE = 0;
+    private static final int DEFAULT_POSITION = 1024;
+
 	DrawerLayout drawerLayout;
     ActionBarDrawerToggle mDrawerToggle;
 	FrameLayout leftDrawer;
@@ -57,6 +59,8 @@ public class MainActivity extends Activity {
 	SeekBar inputFontSize;
 	EditText textFontSizeValue;
 	Spinner inputTypeface;
+    SeekBar inputVerticalPosition;
+    EditText textVerticalPositionValue;
 	Button buttonColorPicker;
 	Button buttonPreview;
 	Button buttonSave;
@@ -168,6 +172,63 @@ public class MainActivity extends Activity {
 		ArrayAdapter<CharSequence> adapterTypeface = ArrayAdapter.createFromResource(this, R.array.inputTypeface, android.R.layout.simple_spinner_item);
 		adapterTypeface.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		inputTypeface.setAdapter(adapterTypeface);
+        // - Vertical position
+        inputVerticalPosition = (SeekBar) findViewById(R.id.inputVerticalPosition);
+        inputVerticalPosition.setMax(Bootscreen.BOOTSCREEN_RESOLUTION_HEIGHT);
+        textVerticalPositionValue = (EditText) findViewById(R.id.textVerticalPositionValue);
+        inputVerticalPosition.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+                //Log.w(LOG_TAG, "VerticalPos SEEK Changed! ("+progress+")");
+                if (fromUser) {
+                    textVerticalPositionValue.setText(Integer.toString(progress));
+                }
+            }
+        });
+        textVerticalPositionValue.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+                String strVal = editable.toString().trim();
+                //Log.w(LOG_TAG, "VerticalPos TEXT Changed! str("+strVal+")");
+                int newVal = strToInt(strVal, 0);
+                //Log.w(LOG_TAG, "VerticalPos TEXT Changed! int("+newVal+")");
+                if (newVal == inputVerticalPosition.getProgress()) {
+                    return;
+                }
+                if (newVal >= 0
+                        && newVal <= Bootscreen.BOOTSCREEN_RESOLUTION_HEIGHT) {
+
+                    inputVerticalPosition.setProgress(newVal);
+                } else {
+                    if (newVal < 0) {
+                        textVerticalPositionValue.setText("0");
+                        textVerticalPositionValue.setSelection(1);
+                    } else {
+                        String newStr = Integer.toString(Bootscreen.BOOTSCREEN_RESOLUTION_HEIGHT);
+                        textVerticalPositionValue.setText(newStr);
+                        textVerticalPositionValue.setSelection(newStr.length());
+                    }
+                }
+            }
+        });
 		// - Preview Button
 		buttonPreview = (Button) findViewById(R.id.buttonPreview);
 		buttonPreview.setOnClickListener(previewButtonClicked);
@@ -191,6 +252,10 @@ public class MainActivity extends Activity {
 			// Ensures that we don't try to select an item outside the list's bounds. Should probably be handled by a try / catch?
 			inputTypeface.setSelection(inputTypefacePos);
 		}
+        // - Vertical Position
+        int inputVerticalPos = settings.getInt("inputVerticalPos", DEFAULT_POSITION);
+        textVerticalPositionValue.setText(Integer.toString(inputVerticalPos));
+
 	}
 
 	@Override
@@ -223,6 +288,8 @@ public class MainActivity extends Activity {
 		editor.putInt("inputTextColor", textColor);
 		// - Typeface
 		editor.putInt("inputTypefacePos", inputTypeface.getSelectedItemPosition());
+        // - Vertical Position
+        editor.putInt("inputVerticalPos", inputVerticalPosition.getProgress());
 		// Commit new settings
 		editor.commit();
 
@@ -345,7 +412,8 @@ public class MainActivity extends Activity {
             bootscreen
                     .setTextSize(getFontSize())
                     .setColor(textColor)
-                    .setTypeface(getTypeface());
+                    .setTypeface(getTypeface())
+                    .setVerticalPosition((float) inputVerticalPosition.getProgress());
 			// Write to the bootscreen.
             bootscreen.doPersonalization(inputMessage.getText().toString());
             previewView.setImageBitmap(bootscreen.getBitmap());

@@ -10,6 +10,7 @@
     <string name="inputTextColorLabel">Text Color</string>
     <string name="buttonColorPickerLabel">Pick a Color</string>
     <string name="inputTypefaceLabel">Typeface</string>
+    <string name="inputVerticalPositionLabel">Vertical Position (in pixels from the top)</string>
     <string name="buttonPreviewLabel">Show Preview</string>
     <string name="buttonSaveLabel">Personalize Bootscreen</string>
     <string-array name="inputTypeface">

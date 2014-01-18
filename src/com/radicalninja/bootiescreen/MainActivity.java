@@ -45,6 +45,8 @@ public class MainActivity extends Activity {
     private static final int FONT_SIZE_MINIMUM = 16;
     private static final int FONT_SIZE_MAXIMUM = 96;
     private static final int DEFAULT_FONT_SIZE = 36;
+    private static final int DEFAULT_COLOR = Color.BLACK;
+    private static final int DEFAULT_TYPEFACE = 0;
 	DrawerLayout drawerLayout;
     ActionBarDrawerToggle mDrawerToggle;
 	FrameLayout leftDrawer;
@@ -181,10 +183,10 @@ public class MainActivity extends Activity {
 		int fontSize = settings.getInt("inputFontSize", DEFAULT_FONT_SIZE);
 		textFontSizeValue.setText(String.format("%d", fontSize ));
 		// - Text Color
-		textColor = settings.getInt("inputTextColor", Color.BLACK);
+		textColor = settings.getInt("inputTextColor", DEFAULT_COLOR);
 		textColorPickerPreview.setBackgroundColor(textColor);
 		// - Typeface
-		int inputTypefacePos = settings.getInt("inputTypefacePos", 0);
+		int inputTypefacePos = settings.getInt("inputTypefacePos", DEFAULT_TYPEFACE);
 		if (inputTypeface.getCount() >= inputTypefacePos) {
 			// Ensures that we don't try to select an item outside the list's bounds. Should probably be handled by a try / catch?
 			inputTypeface.setSelection(inputTypefacePos);

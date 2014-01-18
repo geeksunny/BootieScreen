@@ -8,13 +8,14 @@ import android.graphics.Typeface;
 
 public class Bootscreen extends Canvas {
 	
-	private static final int BOOTSCREEN_RESOLUTION_WIDTH = 720;
-	private static final int BOOTSCREEN_RESOLUTION_HEIGHT = 1280;
+	public static final int BOOTSCREEN_RESOLUTION_WIDTH = 720;
+	public static final int BOOTSCREEN_RESOLUTION_HEIGHT = 1280;
 	private static final String LOG_TAG = "Bootscreen";
 	private Context mContext;
 	private Bitmap mOriginalState;
 	private Bitmap mWorkingCopy;
 	private Paint mPainter;
+    private float mVerticalPosition = BOOTSCREEN_RESOLUTION_HEIGHT * 0.8f;
 	
 	/**
 	 * Constructor method that takes the active application Context object.
@@ -127,6 +128,17 @@ public class Bootscreen extends Canvas {
 		mPainter.setTypeface(typeface);
         return this;
 	}
+
+    /**
+     * Sets the vertical position of the message text.
+     * @param verticalPosition A float value of the given vertical position in pixels from the top.
+     * @return Returns a reference to itself for method chaining.
+     */
+    public Bootscreen setVerticalPosition(float verticalPosition) {
+
+        mVerticalPosition = verticalPosition;
+        return this;
+    }
 	
 	/**
 	 * Personalize the mWorkingCopy bitmap with the given message string.
@@ -138,10 +150,9 @@ public class Bootscreen extends Canvas {
 		// Write's nothing if message is empty string.
 		// Essentially treats a blank message as a "Reset back to DEVICE_BACKUP."
 		if (message != "") {
-			float x = this.getWidth() / 2;
-			float y = this.getHeight() * 0.8f;
-			
-			this.drawText(message, x, y, mPainter);
+			float x = this.getWidth() / 2;  // Center of width
+
+			this.drawText(message, x, mVerticalPosition, mPainter);
 		}
         return this;
 	}

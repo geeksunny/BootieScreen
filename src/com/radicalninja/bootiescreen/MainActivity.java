@@ -14,6 +14,8 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -40,6 +42,13 @@ public class MainActivity extends Activity {
 	private static final String LOG_TAG = "MainActivity";
 	private static final String PREFS_NAME = "BootscreenPrefs";
 
+    private static final int FONT_SIZE_MINIMUM = 16;
+    private static final int FONT_SIZE_MAXIMUM = 96;
+    private static final int DEFAULT_FONT_SIZE = 36;
+    private static final int DEFAULT_COLOR = Color.BLACK;
+    private static final int DEFAULT_TYPEFACE = 0;
+    private static final int DEFAULT_POSITION = 1024;
+
 	DrawerLayout drawerLayout;
     ActionBarDrawerToggle mDrawerToggle;
 	FrameLayout leftDrawer;
@@ -48,8 +57,10 @@ public class MainActivity extends Activity {
 
 	EditText inputMessage;
 	SeekBar inputFontSize;
-	TextView textFontSizeValue;
+	EditText textFontSizeValue;
 	Spinner inputTypeface;
+    SeekBar inputVerticalPosition;
+    EditText textVerticalPositionValue;
 	Button buttonColorPicker;
 	Button buttonPreview;
 	Button buttonSave;
@@ -101,7 +112,8 @@ public class MainActivity extends Activity {
 		inputMessage = (EditText) findViewById(R.id.inputMessage);
 		// - Font Size Selection
 		inputFontSize = (SeekBar) findViewById(R.id.inputFontSize);
-		textFontSizeValue = (TextView) findViewById(R.id.textFontSizeValue);
+        inputFontSize.setMax(FONT_SIZE_MAXIMUM - FONT_SIZE_MINIMUM);
+		textFontSizeValue = (EditText) findViewById(R.id.textFontSizeValue);
 		inputFontSize.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
 			@Override
@@ -112,10 +124,44 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				textFontSizeValue.setText(String.format("%ddp", (int) parent.getFontSize() ));
+
+                if (fromUser) {
+    				textFontSizeValue.setText(Integer.toString(progress + FONT_SIZE_MINIMUM));
+                }
 			}
 		});
-		// - Color Selection (PICKER)
+        textFontSizeValue.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+                String strVal = editable.toString().trim();
+                int newVal = strToInt(strVal, FONT_SIZE_MINIMUM);
+                if (newVal == inputFontSize.getProgress() - FONT_SIZE_MINIMUM) {
+                    return;
+                }
+                if (newVal >= FONT_SIZE_MINIMUM
+                        && newVal <= FONT_SIZE_MAXIMUM) {
+
+                    inputFontSize.setProgress(newVal - FONT_SIZE_MINIMUM);
+                } else {
+                    if (newVal < FONT_SIZE_MINIMUM) {
+                        inputFontSize.setProgress(0);
+                    } else {
+                        String newStr = Integer.toString(FONT_SIZE_MAXIMUM);
+                        textFontSizeValue.setText(newStr);
+                        textFontSizeValue.setSelection(newStr.length());
+                    }
+                }
+            }
+        });
+        // - Color Selection (PICKER)
 		// TODO: Investigate the possibility / benefits / detriments to stuffing the color well + button into part of ColorPickerDialogBuilder and make it a more universal widget package.
 		buttonColorPicker = (Button) findViewById(R.id.buttonColorPicker);
 		buttonColorPicker.setOnClickListener(colorPicker);
@@ -126,6 +172,63 @@ public class MainActivity extends Activity {
 		ArrayAdapter<CharSequence> adapterTypeface = ArrayAdapter.createFromResource(this, R.array.inputTypeface, android.R.layout.simple_spinner_item);
 		adapterTypeface.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		inputTypeface.setAdapter(adapterTypeface);
+        // - Vertical position
+        inputVerticalPosition = (SeekBar) findViewById(R.id.inputVerticalPosition);
+        inputVerticalPosition.setMax(Bootscreen.BOOTSCREEN_RESOLUTION_HEIGHT);
+        textVerticalPositionValue = (EditText) findViewById(R.id.textVerticalPositionValue);
+        inputVerticalPosition.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+                //Log.w(LOG_TAG, "VerticalPos SEEK Changed! ("+progress+")");
+                if (fromUser) {
+                    textVerticalPositionValue.setText(Integer.toString(progress));
+                }
+            }
+        });
+        textVerticalPositionValue.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+                String strVal = editable.toString().trim();
+                //Log.w(LOG_TAG, "VerticalPos TEXT Changed! str("+strVal+")");
+                int newVal = strToInt(strVal, 0);
+                //Log.w(LOG_TAG, "VerticalPos TEXT Changed! int("+newVal+")");
+                if (newVal == inputVerticalPosition.getProgress()) {
+                    return;
+                }
+                if (newVal >= 0
+                        && newVal <= Bootscreen.BOOTSCREEN_RESOLUTION_HEIGHT) {
+
+                    inputVerticalPosition.setProgress(newVal);
+                } else {
+                    if (newVal < 0) {
+                        textVerticalPositionValue.setText("0");
+                        textVerticalPositionValue.setSelection(1);
+                    } else {
+                        String newStr = Integer.toString(Bootscreen.BOOTSCREEN_RESOLUTION_HEIGHT);
+                        textVerticalPositionValue.setText(newStr);
+                        textVerticalPositionValue.setSelection(newStr.length());
+                    }
+                }
+            }
+        });
 		// - Preview Button
 		buttonPreview = (Button) findViewById(R.id.buttonPreview);
 		buttonPreview.setOnClickListener(previewButtonClicked);
@@ -138,18 +241,21 @@ public class MainActivity extends Activity {
 		// - Personal Message
 		inputMessage.setText(settings.getString("inputMessage", ""));
 		// - Font Size
-		int fontSize = settings.getInt("inputFontSize", 36);
-		inputFontSize.setProgress(fontSize - 20);
-		textFontSizeValue.setText(String.format("%ddp", fontSize ));
+		int fontSize = settings.getInt("inputFontSize", DEFAULT_FONT_SIZE);
+		textFontSizeValue.setText(String.format("%d", fontSize ));
 		// - Text Color
-		textColor = settings.getInt("inputTextColor", Color.BLACK);
+		textColor = settings.getInt("inputTextColor", DEFAULT_COLOR);
 		textColorPickerPreview.setBackgroundColor(textColor);
 		// - Typeface
-		int inputTypefacePos = settings.getInt("inputTypefacePos", 0);
+		int inputTypefacePos = settings.getInt("inputTypefacePos", DEFAULT_TYPEFACE);
 		if (inputTypeface.getCount() >= inputTypefacePos) {
 			// Ensures that we don't try to select an item outside the list's bounds. Should probably be handled by a try / catch?
 			inputTypeface.setSelection(inputTypefacePos);
 		}
+        // - Vertical Position
+        int inputVerticalPos = settings.getInt("inputVerticalPos", DEFAULT_POSITION);
+        textVerticalPositionValue.setText(Integer.toString(inputVerticalPos));
+
 	}
 
 	@Override
@@ -182,6 +288,8 @@ public class MainActivity extends Activity {
 		editor.putInt("inputTextColor", textColor);
 		// - Typeface
 		editor.putInt("inputTypefacePos", inputTypeface.getSelectedItemPosition());
+        // - Vertical Position
+        editor.putInt("inputVerticalPos", inputVerticalPosition.getProgress());
 		// Commit new settings
 		editor.commit();
 
@@ -304,7 +412,8 @@ public class MainActivity extends Activity {
             bootscreen
                     .setTextSize(getFontSize())
                     .setColor(textColor)
-                    .setTypeface(getTypeface());
+                    .setTypeface(getTypeface())
+                    .setVerticalPosition((float) inputVerticalPosition.getProgress());
 			// Write to the bootscreen.
             bootscreen.doPersonalization(inputMessage.getText().toString());
             previewView.setImageBitmap(bootscreen.getBitmap());
@@ -436,7 +545,7 @@ public class MainActivity extends Activity {
      * @return Returns a the font size as a float.
      */
 	private float getFontSize() {
-		int fontSize = inputFontSize.getProgress() + 16;
+		int fontSize = inputFontSize.getProgress() + FONT_SIZE_MINIMUM;
 		return (float) fontSize;
 	}
 
@@ -488,6 +597,25 @@ public class MainActivity extends Activity {
 	private void loadImage(Bitmap bitmap) {
 		previewView.setImageBitmap(bitmap);
 	}
+
+    /**
+     * Convenience method shortcut for converting a string to an integer.
+     * @param str The given String object to be converted.
+     * @param defaultValue The default value to use if the String does not contain an integer value.
+     * @return Returns the integer value of str, or defaultValue if str cannot be parsed.
+     */
+    public int strToInt(String str, int defaultValue) {
+
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException e) {
+            //Log.e(LOG_TAG, "StrToInt: NumberFormatException");
+            return defaultValue;
+        } catch (NullPointerException e) {
+            //Log.e(LOG_TAG, "StrToInt: NullPointerException");
+            return defaultValue;
+        }
+    }
 	
 	/**
 	 * Handling the back-button when the preview pane is open.

@@ -70,7 +70,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:text="Pick a Color" />
+            android:text="@string/buttonColorPickerLabel" />
     </LinearLayout>
     
     <TextView

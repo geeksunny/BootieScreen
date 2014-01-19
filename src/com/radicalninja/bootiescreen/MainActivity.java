@@ -594,25 +594,28 @@ public class MainActivity extends Activity {
      */
 	private void loadImage(boolean forceNewPull) {
         // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
+        mBootscreenHelper = new BootscreenHelper(parent);
+        // Creating our callback object for handling the outcome of .loadDeviceBootscreen().
         BootscreenHelperCallback loadScreenCallback = new BootscreenHelperCallback() {
             @Override
             void onSuccess(String successMessage) {
+                // Set the preview image.
+                previewView.setImageBitmap(mBootscreenHelper.getBitmap());
                 Toast.makeText(parent, successMessage, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             void onFailure(String failureMessage, int flag) {
-                Toast.makeText(parent, failureMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(parent, failureMessage, Toast.LENGTH_LONG).show();
             }
 
             @Override
             void onNeutral(String neutralMessage) { }
         };
 		// Load the bitmap into the Bootscreen object
-		mBootscreenHelper = new BootscreenHelper(parent)
+        mBootscreenHelper
                 .setCallback(loadScreenCallback)
                 .loadDeviceBootscreen(forceNewPull);
-        previewView.setImageBitmap(mBootscreenHelper.getBitmap());
 	}
 
 	/**

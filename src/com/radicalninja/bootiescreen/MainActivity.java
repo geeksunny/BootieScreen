@@ -263,7 +263,7 @@ public class MainActivity extends Activity {
 
 		super.onStart();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
-		loadImage();
+		loadImage(false);
 	}
 
 	@Override
@@ -315,6 +315,32 @@ public class MainActivity extends Activity {
         }
 		// Handle menu item selection
 		switch (item.getItemId()) {
+        case R.id.action_pullDeviceBackup:
+
+            // AlertDialog for proceeding with the bootscreen installation.
+            DialogInterface.OnClickListener doPullDeviceBackup = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which) {
+                        case DialogInterface.BUTTON_POSITIVE:
+                            // Yes button clicked
+                            loadImage(true);
+                            break;
+                        case DialogInterface.BUTTON_NEGATIVE:
+                            // No button clicked
+                            Toast.makeText(parent, "Device pull CANCELLED!", Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
+            };
+            AlertDialog.Builder doPullDeviceBackupDialog = new AlertDialog.Builder(parent);
+            doPullDeviceBackupDialog
+                    .setMessage("This will pull a new copy of your device's CURRENT bootscreen. This will be the graphic that your personalized message will be applied to.\n\nPlease DO NOT proceed if your device is already personalized as that existing message will be PERMANENTLY part of the image.\n\nARE YOU SURE YOU WANT TO DO THIS?")
+                    .setPositiveButton("Yes", doPullDeviceBackup)
+                    .setNegativeButton("No", doPullDeviceBackup)
+                    .show();
+
+            return true;
 		case R.id.action_restoreBackup:
 
 			// AlertDialogs for handling the result of the installation procedure.
@@ -391,7 +417,6 @@ public class MainActivity extends Activity {
 				.setPositiveButton("Yes", doRestoration)
 				.setNegativeButton("No", doRestoration)
 				.show();
-
 
 			return true;
 		default:
@@ -567,36 +592,40 @@ public class MainActivity extends Activity {
     /**
      * Loads the bootscreen graphic from the device into the app's editor.
      */
-	private void loadImage() {
+	private void loadImage(boolean forceNewPull) {
         // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
+        mBootscreenHelper = new BootscreenHelper(parent);
+        // Creating our callback object for handling the outcome of .loadDeviceBootscreen().
         BootscreenHelperCallback loadScreenCallback = new BootscreenHelperCallback() {
             @Override
             void onSuccess(String successMessage) {
-                Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+                // Set the preview image.
+                previewView.setImageBitmap(mBootscreenHelper.getBitmap());
+                Toast.makeText(parent, successMessage, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             void onFailure(String failureMessage, int flag) {
-                Toast.makeText(getApplicationContext(), failureMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(parent, failureMessage, Toast.LENGTH_LONG).show();
             }
 
             @Override
             void onNeutral(String neutralMessage) { }
         };
 		// Load the bitmap into the Bootscreen object
-		mBootscreenHelper = new BootscreenHelper(parent)
+        mBootscreenHelper
                 .setCallback(loadScreenCallback)
-                .loadDeviceBootscreen();
-        previewView.setImageBitmap(mBootscreenHelper.getBitmap());
+                .loadDeviceBootscreen(forceNewPull);
 	}
 
 	/**
 	 * Loads the given com.android.graphics.Bitmap into memory / the preview pane.
 	 * @param	bitmap	The given Bitmap object to load.
 	 */
-	private void loadImage(Bitmap bitmap) {
-		previewView.setImageBitmap(bitmap);
-	}
+    // ~~~ NOT BEING USED AT THE MOMENT ~~~ //
+	//private void loadImage(Bitmap bitmap) {
+	//	previewView.setImageBitmap(bitmap);
+	//}
 
     /**
      * Convenience method shortcut for converting a string to an integer.

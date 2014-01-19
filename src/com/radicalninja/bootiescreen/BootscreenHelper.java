@@ -16,13 +16,13 @@ import java.util.concurrent.TimeoutException;
 
 public class BootscreenHelper {
 
-    private static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
-    private static final String FILENAME_WORKING_COPY = "clogo.bmp";
     private static final String LOG_TAG = "BootscreenHelper";
     private Context mContext;
     private Bootscreen mBootscreen;
     private BootscreenHelperCallback mBootscreenHelperCallback;
-    private String filePrefixDirectory;
+    protected static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
+    protected static final String FILENAME_WORKING_COPY = "clogo.bmp";
+    protected static final String PREFIX_FILE_DIRECTORY = "/sdcard/BootieScreen";
 
 
     public BootscreenHelper(Context context) {
@@ -30,7 +30,7 @@ public class BootscreenHelper {
         mContext = context;
         mBootscreen = new Bootscreen(context);
 
-        // Setting the filePrefixDirectory variable.
+        // Setting the PREFIX_FILE_DIRECTORY variable.
         //TODO: Clean up the new /sdcard/ hard-coding with exception protection.
 		/*
 		File prefixDir;
@@ -40,17 +40,16 @@ public class BootscreenHelper {
 			Log.e(LOG_TAG, "The external storage folder could not be accessed! Make sure you aren't creating this Bootscreen from withing Activity.onCreate()!");
 			Log.i(LOG_TAG, "External Storage State: "+Environment.getExternalStorageState());
 			prefixDir = mContext.getFilesDir();
-			//TODO: Bug-If the filePrefixDirectory is pointing at /data/data/..., all of my File objects that reference the raw filepath will fail with EACCES (Permission denied). Re-write these calls to respect permissions properly.
+			//TODO: Bug-If the PREFIX_FILE_DIRECTORY is pointing at /data/data/..., all of my File objects that reference the raw filepath will fail with EACCES (Permission denied). Re-write these calls to respect permissions properly.
 		}
-		filePrefixDirectory = prefixDir.toString();
+		PREFIX_FILE_DIRECTORY = prefixDir.toString();
 		*/
-        filePrefixDirectory = "/sdcard/BootieScreen";
         Log.i(LOG_TAG, "Checking if directory exists on sdcard...");
         if (fileExists("")) {
             Log.i(LOG_TAG, "Good news, everyone! The directory exists on sdcard!");
         } else {
             Log.w(LOG_TAG, "Directory does not exist on sdcard -- Creating it now!");
-            File dataDir = new File(filePrefixDirectory);
+            File dataDir = new File(PREFIX_FILE_DIRECTORY);
             dataDir.mkdirs();
             if (fileExists("")) {
                 Log.i(LOG_TAG, "Directory was successfully created!");
@@ -69,7 +68,7 @@ public class BootscreenHelper {
      */
     public boolean fileExists(String filename) {
 
-        File file = new File(filePrefixDirectory+"/"+filename);
+        File file = new File(PREFIX_FILE_DIRECTORY +"/"+filename);
         if (file.exists()) {
             return true;
         } else {
@@ -147,36 +146,44 @@ public class BootscreenHelper {
      * If a BootscreenHelperCallback is set, it will invoke either success or failure based on the
      * outcome of the bitmap loading.
      *
+     * @param forceNewPull If true, the DEVICE_BACKUP bootscreen graphic will be pulled from the device even if one exists on the SD card.
      * @return Returns the current BootscreenHelper object for method chaining.
      */
-    public BootscreenHelper loadDeviceBootscreen() {
+    public BootscreenHelper loadDeviceBootscreen(boolean forceNewPull) {
 
         if (!fileExists(FILENAME_DEVICE_BACKUP)) {
-            // Since the file dies not exist yet, pull a copy from the device.
+            // Since the file does not exist yet, pull a copy from the device.
             if (!pullBootscreenFromDevice(false)) {
                 Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen()");
-                return this;
             }
+        } else if (forceNewPull) {
+            // The file exists, but we want to replace it with a fresh copy from the device.
+            if (!pullBootscreenFromDevice(true)) {
+                Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen(true)");
+            }
+        } else {
+            // The file exists! Load it into the Bootscreen object.
+            bitmapToBootscreen();
         }
 
-        Bitmap bitmap = BitmapFactory.decodeFile(filePrefixDirectory + "/" + FILENAME_DEVICE_BACKUP);
+        return this;
+    }
+
+    /**
+     * Called when loading DEVICE_COPY from the SD Card into the Bootscreen object.
+     */
+    private void bitmapToBootscreen() {
+
+        Bitmap bitmap = BitmapFactory.decodeFile(PREFIX_FILE_DIRECTORY + "/" + FILENAME_DEVICE_BACKUP);
         if (bitmap == null) {
-            // Since it looks like the existing file might be corrupt in some way, we are going
-            // to pull a new copy from the device.
-            pullBootscreenFromDevice(true);
-            bitmap = BitmapFactory.decodeFile(filePrefixDirectory + "/" + FILENAME_DEVICE_BACKUP);
-            if (bitmap == null) {
-                Log.e(LOG_TAG, "Could not read the bitmap file, even after re-pulling.");
-                callbackFailure("Could not read the bootscreen's bitmap file.",
-                                BootscreenHelperCallback.FLAG_BITMAP_CORRUPT, true);
-                return this;
-            }
+            Log.e(LOG_TAG, "Could not read the bitmap file! It may be corrupt. Pull a new copy from the device.");
+            callbackFailure("Could not read the bootscreen's bitmap file. It may be corrupt. Try pulling a new copy.",
+                    BootscreenHelperCallback.FLAG_BITMAP_CORRUPT, true);
+            return;
         }
         mBootscreen.setOriginalState(bitmap, true);
         Log.i(LOG_TAG, "Device bitmap successfully loaded into the Bootscreen object.");
         callbackSuccess("Device bitmap successfully loaded into editor!", true);
-
-        return this;
     }
 
     /**
@@ -201,13 +208,21 @@ public class BootscreenHelper {
         // Checking for Root access.
         if (RootTools.isAccessGiven()) {
             Log.i(LOG_TAG, "Root granted! About to pull bitmap...");
-            String cmd = String.format("dd if=/dev/block/platform/msm_sdcc.1/by-name/clogo of=%s/%s", filePrefixDirectory, FILENAME_DEVICE_BACKUP);
+            String cmd = String.format("dd if=/dev/block/platform/msm_sdcc.1/by-name/clogo of=%s/%s", PREFIX_FILE_DIRECTORY, FILENAME_DEVICE_BACKUP);
             Log.i(LOG_TAG, "About to run this command...");
             Log.i(LOG_TAG, cmd);
             Command command = new Command(0, cmd) {
 
                 @Override
-                public void commandCompleted(int id, int arg1) { }
+                public void commandCompleted(int id, int arg1) {
+                    // The bitmap SHOULD have been pulled to the SD card by now. Verify and load.
+                    if (fileExists(FILENAME_DEVICE_BACKUP)) {
+                        bitmapToBootscreen();
+                    } else {
+                        callbackFailure("Bootscreen graphic could not be saved to the SD card.",
+                                        BootscreenHelperCallback.FLAG_BITMAP_MISSING, true);
+                    }
+                }
 
                 @Override
                 public void commandOutput(int id, String line) {
@@ -261,7 +276,7 @@ public class BootscreenHelper {
      */
     public boolean deleteFileIfExists(String filename) {
 
-        File file = new File(filePrefixDirectory+"/"+filename);
+        File file = new File(PREFIX_FILE_DIRECTORY +"/"+filename);
         if (file.exists()) {
             if (file.delete()) {
                 Log.i(LOG_TAG, "File deleted: "+filename);
@@ -313,7 +328,7 @@ public class BootscreenHelper {
         // Checking for Root access.
         if (RootTools.isAccessGiven()) {
             Log.i(LOG_TAG, "Root granted! About to PUSH bitmap...");
-            String cmd = String.format("dd if=%s/%s of=/dev/block/platform/msm_sdcc.1/by-name/clogo", filePrefixDirectory, FILENAME_DEVICE_BACKUP);
+            String cmd = String.format("dd if=%s/%s of=/dev/block/platform/msm_sdcc.1/by-name/clogo", PREFIX_FILE_DIRECTORY, FILENAME_DEVICE_BACKUP);
             Log.i(LOG_TAG, "About to run this command...");
             Log.i(LOG_TAG, cmd);
             Command command = new Command(0, cmd) {
@@ -406,7 +421,7 @@ public class BootscreenHelper {
         // Checking for Root access.
         if (RootTools.isAccessGiven()) {
             Log.i(LOG_TAG, "Root granted! About to PUSH bitmap...");
-            String cmd = String.format("dd if=%s/%s of=/dev/block/platform/msm_sdcc.1/by-name/clogo", filePrefixDirectory, FILENAME_WORKING_COPY);
+            String cmd = String.format("dd if=%s/%s of=/dev/block/platform/msm_sdcc.1/by-name/clogo", PREFIX_FILE_DIRECTORY, FILENAME_WORKING_COPY);
             Log.i(LOG_TAG, "About to run this command...");
             Log.i(LOG_TAG, cmd);
             Command command = new Command(0, cmd) {
@@ -472,7 +487,7 @@ public class BootscreenHelper {
         }
         // Compress and save workingCopy Bitmap to WORKING_COPY.
         AndroidBmpUtil bmpUtil = new AndroidBmpUtil();
-        boolean isSaveResult = bmpUtil.save(mBootscreen.getBitmap(), filePrefixDirectory+"/"+FILENAME_WORKING_COPY);
+        boolean isSaveResult = bmpUtil.save(mBootscreen.getBitmap(), PREFIX_FILE_DIRECTORY +"/"+FILENAME_WORKING_COPY);
         if (isSaveResult && fileExists(FILENAME_WORKING_COPY)) {
             return true;
         } else {

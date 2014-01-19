@@ -229,6 +229,10 @@ public class MainActivity extends Activity {
                 }
             }
         });
+        // - [Setting the vertical position EditText to a max width of 4 characters.]
+        float width = textVerticalPositionValue.getPaint().measureText("0000");
+        textVerticalPositionValue.setWidth(textVerticalPositionValue.getPaddingLeft()
+                + textVerticalPositionValue.getPaddingRight() + (int) width);
 		// - Preview Button
 		buttonPreview = (Button) findViewById(R.id.buttonPreview);
 		buttonPreview.setOnClickListener(previewButtonClicked);

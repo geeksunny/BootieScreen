@@ -3,6 +3,7 @@
 
     <string name="app_name">BootieScreen</string>
     <string name="action_settings">Settings</string>
+    <string name="action_pullDeviceBackup">Pull Device Bootscreen</string>
     <string name="action_restoreBackup">Restore Original Bootscreen</string>
     <string name="inputMessageLabel">Your Personalized Boot Message</string>
     <string name="inputMessageHint">Hello Moto?</string>

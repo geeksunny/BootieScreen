@@ -263,7 +263,7 @@ public class MainActivity extends Activity {
 
 		super.onStart();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
-		loadImage();
+		loadImage(false);
 	}
 
 	@Override
@@ -567,17 +567,17 @@ public class MainActivity extends Activity {
     /**
      * Loads the bootscreen graphic from the device into the app's editor.
      */
-	private void loadImage() {
+	private void loadImage(boolean forceNewPull) {
         // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
         BootscreenHelperCallback loadScreenCallback = new BootscreenHelperCallback() {
             @Override
             void onSuccess(String successMessage) {
-                Toast.makeText(getApplicationContext(), successMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(parent, successMessage, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             void onFailure(String failureMessage, int flag) {
-                Toast.makeText(getApplicationContext(), failureMessage, Toast.LENGTH_SHORT).show();
+                Toast.makeText(parent, failureMessage, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -586,7 +586,7 @@ public class MainActivity extends Activity {
 		// Load the bitmap into the Bootscreen object
 		mBootscreenHelper = new BootscreenHelper(parent)
                 .setCallback(loadScreenCallback)
-                .loadDeviceBootscreen();
+                .loadDeviceBootscreen(forceNewPull);
         previewView.setImageBitmap(mBootscreenHelper.getBitmap());
 	}
 
@@ -594,9 +594,10 @@ public class MainActivity extends Activity {
 	 * Loads the given com.android.graphics.Bitmap into memory / the preview pane.
 	 * @param	bitmap	The given Bitmap object to load.
 	 */
-	private void loadImage(Bitmap bitmap) {
-		previewView.setImageBitmap(bitmap);
-	}
+    // ~~~ NOT BEING USED AT THE MOMENT ~~~ //
+	//private void loadImage(Bitmap bitmap) {
+	//	previewView.setImageBitmap(bitmap);
+	//}
 
     /**
      * Convenience method shortcut for converting a string to an integer.

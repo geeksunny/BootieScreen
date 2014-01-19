@@ -146,15 +146,24 @@ public class BootscreenHelper {
      * If a BootscreenHelperCallback is set, it will invoke either success or failure based on the
      * outcome of the bitmap loading.
      *
+     * @param forceNewPull If true, the DEVICE_BACKUP bootscreen graphic will be pulled from the device even if one exists on the SD card.
      * @return Returns the current BootscreenHelper object for method chaining.
      */
-    public BootscreenHelper loadDeviceBootscreen() {
+    public BootscreenHelper loadDeviceBootscreen(boolean forceNewPull) {
 
         if (!fileExists(FILENAME_DEVICE_BACKUP)) {
-            // Since the file dies not exist yet, pull a copy from the device.
+            // Since the file does not exist yet, pull a copy from the device.
             if (!pullBootscreenFromDevice(false)) {
                 Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen()");
                 return this;
+            }
+        } else {
+            // The file exists! Force a new pull from the device if forceNewPull is true...
+            if (forceNewPull) {
+                if (!pullBootscreenFromDevice(true)) {
+                    Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen(true)");
+                    return this;
+                }
             }
         }
 

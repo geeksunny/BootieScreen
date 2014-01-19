@@ -155,36 +155,35 @@ public class BootscreenHelper {
             // Since the file does not exist yet, pull a copy from the device.
             if (!pullBootscreenFromDevice(false)) {
                 Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen()");
-                return this;
+            }
+        } else if (forceNewPull) {
+            // The file exists, but we want to replace it with a fresh copy from the device.
+            if (!pullBootscreenFromDevice(true)) {
+                Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen(true)");
             }
         } else {
-            // The file exists! Force a new pull from the device if forceNewPull is true...
-            if (forceNewPull) {
-                if (!pullBootscreenFromDevice(true)) {
-                    Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen(true)");
-                    return this;
-                }
-            }
+            // The file exists! Load it into the Bootscreen object.
+            bitmapToBootscreen();
         }
+
+        return this;
+    }
+
+    /**
+     * Called when loading DEVICE_COPY from the SD Card into the Bootscreen object.
+     */
+    private void bitmapToBootscreen() {
 
         Bitmap bitmap = BitmapFactory.decodeFile(PREFIX_FILE_DIRECTORY + "/" + FILENAME_DEVICE_BACKUP);
         if (bitmap == null) {
-            // Since it looks like the existing file might be corrupt in some way, we are going
-            // to pull a new copy from the device.
-            pullBootscreenFromDevice(true);
-            bitmap = BitmapFactory.decodeFile(PREFIX_FILE_DIRECTORY + "/" + FILENAME_DEVICE_BACKUP);
-            if (bitmap == null) {
-                Log.e(LOG_TAG, "Could not read the bitmap file, even after re-pulling.");
-                callbackFailure("Could not read the bootscreen's bitmap file.",
-                                BootscreenHelperCallback.FLAG_BITMAP_CORRUPT, true);
-                return this;
-            }
+            Log.e(LOG_TAG, "Could not read the bitmap file! It may be corrupt. Pull a new copy from the device.");
+            callbackFailure("Could not read the bootscreen's bitmap file. It may be corrupt. Try pulling a new copy.",
+                    BootscreenHelperCallback.FLAG_BITMAP_CORRUPT, true);
+            return;
         }
         mBootscreen.setOriginalState(bitmap, true);
         Log.i(LOG_TAG, "Device bitmap successfully loaded into the Bootscreen object.");
         callbackSuccess("Device bitmap successfully loaded into editor!", true);
-
-        return this;
     }
 
     /**
@@ -215,7 +214,15 @@ public class BootscreenHelper {
             Command command = new Command(0, cmd) {
 
                 @Override
-                public void commandCompleted(int id, int arg1) { }
+                public void commandCompleted(int id, int arg1) {
+                    // The bitmap SHOULD have been pulled to the SD card by now. Verify and load.
+                    if (fileExists(FILENAME_DEVICE_BACKUP)) {
+                        bitmapToBootscreen();
+                    } else {
+                        callbackFailure("Bootscreen graphic could not be saved to the SD card.",
+                                        BootscreenHelperCallback.FLAG_BITMAP_MISSING, true);
+                    }
+                }
 
                 @Override
                 public void commandOutput(int id, String line) {

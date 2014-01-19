@@ -9,7 +9,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -605,7 +604,7 @@ public class MainActivity extends Activity {
             void onSuccess(String successMessage) {
                 // Set the preview image.
                 previewView.setImageBitmap(mBootscreenHelper.getBitmap());
-                Toast.makeText(parent, successMessage, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(parent, successMessage, Toast.LENGTH_SHORT).show();
             }
 
             @Override

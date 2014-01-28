@@ -34,13 +34,13 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-	// TODO Add code that checks build.prop for device name and force quit if user does not have Moto X (Or other possibly compatible devices, like the mini or G maybe?)
 	// TODO Go through and standardize Javadoc comments.
 	// TODO Review project's object code organization and variable privileges.
 	final MainActivity parent = this;
 	private static final String LOG_TAG = "MainActivity";
 	private static final String PREFS_NAME = "BootscreenPrefs";
 
+    private static final String[] SUPPORTED_DEVICES = {"ghost"};
     private static final int FONT_SIZE_MINIMUM = 16;
     private static final int FONT_SIZE_MAXIMUM = 96;
     private static final int DEFAULT_FONT_SIZE = 36;
@@ -265,6 +265,8 @@ public class MainActivity extends Activity {
 	public void onStart() {
 
 		super.onStart();
+        enforceDeviceRestrictions();
+        enforceRootRequirement();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
 		loadImage(false);
 	}
@@ -619,6 +621,52 @@ public class MainActivity extends Activity {
         mBootscreenHelper
                 .setCallback(loadScreenCallback)
                 .loadDeviceBootscreen(forceNewPull);
+	}
+
+    /**
+     * Ensures that the user is running one of the SUPPORTED_DEVICES and kills the app if not.
+     */
+	private void enforceDeviceRestrictions(){
+
+		if (!RootHelper.deviceInList(SUPPORTED_DEVICES)) {
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+			alertDialogBuilder.setTitle("Device Error");
+			alertDialogBuilder
+				.setMessage("Your device is not supported. BootieScreen will now close.")
+				.setCancelable(false)
+				.setPositiveButton("OK",new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog,int id) {
+						dialog.cancel();
+						finish();
+					}
+				  });
+				AlertDialog alertDialog = alertDialogBuilder.create();
+				alertDialog.show();
+		}
+	}
+	
+	//Get Root status.  If root is not attained or app is not given access show message and 
+	//exit app after dialog is shown. If root is available then loadImage.
+
+    /**
+     * Get root status. If root is not available and allowed, kill the app.
+     */
+	private void enforceRootRequirement() {
+		if (!RootHelper.rootIsAvailable()) {
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+			alertDialogBuilder.setTitle("Device Error");
+			alertDialogBuilder
+				.setMessage("Your device is not rooted or BootieScreen does not have root access. BootieScreen will now close.")
+				.setCancelable(false)
+				.setPositiveButton("OK",new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog,int id) {
+						dialog.cancel();
+						finish();
+					}
+				  });
+				AlertDialog alertDialog = alertDialogBuilder.create();
+				alertDialog.show();
+		}
 	}
 
 	/**

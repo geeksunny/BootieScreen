@@ -3,6 +3,7 @@ package com.radicalninja.bootiescreen;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.util.Log;
 
 import com.stericson.RootTools.RootTools;
@@ -22,7 +23,8 @@ public class BootscreenHelper {
     private BootscreenHelperCallback mBootscreenHelperCallback;
     protected static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
     protected static final String FILENAME_WORKING_COPY = "clogo.bmp";
-    protected static final String PREFIX_FILE_DIRECTORY = "/sdcard/BootieScreen";
+    protected static final String PREFIX_FILE_DIRECTORY
+            = String.format("%s/BootieScreen", Environment.getExternalStorageDirectory());
 
 
     public BootscreenHelper(Context context) {
@@ -32,18 +34,6 @@ public class BootscreenHelper {
 
         // Setting the PREFIX_FILE_DIRECTORY variable.
         //TODO: Clean up the new /sdcard/ hard-coding with exception protection.
-		/*
-		File prefixDir;
-		try {
-			prefixDir = mContext.getExternalFilesDir(null);
-		} catch (java.lang.NullPointerException e) {
-			Log.e(LOG_TAG, "The external storage folder could not be accessed! Make sure you aren't creating this Bootscreen from withing Activity.onCreate()!");
-			Log.i(LOG_TAG, "External Storage State: "+Environment.getExternalStorageState());
-			prefixDir = mContext.getFilesDir();
-			//TODO: Bug-If the PREFIX_FILE_DIRECTORY is pointing at /data/data/..., all of my File objects that reference the raw filepath will fail with EACCES (Permission denied). Re-write these calls to respect permissions properly.
-		}
-		PREFIX_FILE_DIRECTORY = prefixDir.toString();
-		*/
         Log.i(LOG_TAG, "Checking if directory exists on sdcard...");
         if (fileExists("")) {
             Log.i(LOG_TAG, "Good news, everyone! The directory exists on sdcard!");

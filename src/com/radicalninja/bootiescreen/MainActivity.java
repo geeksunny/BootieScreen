@@ -636,7 +636,15 @@ public class MainActivity extends Activity {
 
             @Override
             void onFailure(String failureMessage, int flag) {
-                Toast.makeText(parent, failureMessage, Toast.LENGTH_LONG).show();
+                if (flag == BootscreenHelperCallback.FLAG_BITMAP_CORRUPT) {
+
+                    Toast.makeText(parent,
+                            "Your device's clogo is either empty or corrupt. Loading stock image into editor.",
+                            Toast.LENGTH_LONG).show();
+                    loadStockImage();
+                } else {
+                    Toast.makeText(parent, failureMessage, Toast.LENGTH_LONG).show();
+                }
             }
 
             @Override
@@ -646,7 +654,38 @@ public class MainActivity extends Activity {
         mBootscreenHelper
                 .setCallback(loadScreenCallback)
                 .loadDeviceBootscreen(forceNewPull);
-	}
+    }
+
+    /**
+     * Loads the stock bootscreen graphic from the app's asset folder into the app's editor.
+     */
+    private void loadStockImage() {
+        //TODO: Copy stock logo to sdcard for future use. Should probably be handled on a background thread.
+        // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
+        mBootscreenHelper = new BootscreenHelper(parent);
+        // Creating our callback object for handling the outcome of .loadDeviceBootscreen().
+        BootscreenHelperCallback loadScreenCallback = new BootscreenHelperCallback() {
+            @Override
+            void onSuccess(String successMessage) {
+                // Set the preview image.
+                previewView.setImageBitmap(mBootscreenHelper.getBitmap());
+            }
+
+            @Override
+            void onFailure(String failureMessage, int flag) {
+                Toast.makeText(parent,
+                        "The stock image could not be loaded into the editor.",
+                        Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            void onNeutral(String neutralMessage) { }
+        };
+        // Load the bitmap into the Bootscreen object
+        mBootscreenHelper
+                .setCallback(loadScreenCallback)
+                .stockBitmapToBootscreen();
+    }
 
     /**
      * Ensures that the user is running one of the SUPPORTED_DEVICES and kills the app if not.

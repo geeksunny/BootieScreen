@@ -13,6 +13,7 @@ import com.ultrasonic.android.image.bitmap.util.AndroidBmpUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.TimeoutException;
 
 public class BootscreenHelper {
@@ -23,6 +24,7 @@ public class BootscreenHelper {
     private BootscreenHelperCallback mBootscreenHelperCallback;
     protected static final String FILENAME_DEVICE_BACKUP = "clogoDeviceBackup.bmp";
     protected static final String FILENAME_WORKING_COPY = "clogo.bmp";
+    protected static final String ASSET_FILENAME_DEFAULT_GRAPHIC = "stock_clogo.png";
     protected static final String PREFIX_FILE_DIRECTORY
             = String.format("%s/BootieScreen", Environment.getExternalStorageDirectory());
 
@@ -62,6 +64,7 @@ public class BootscreenHelper {
         if (file.exists()) {
             return true;
         } else {
+            Log.e(LOG_TAG, "FILE DOES NOT EXIST: "+filename);
             return false;
         }
 
@@ -144,7 +147,7 @@ public class BootscreenHelper {
         if (!fileExists(FILENAME_DEVICE_BACKUP)) {
             // Since the file does not exist yet, pull a copy from the device.
             if (!pullBootscreenFromDevice(false)) {
-                Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen()");
+                Log.e(LOG_TAG, "Failed to pull bootscreen from device. Aborting loadDeviceBootscreen(false)");
             }
         } else if (forceNewPull) {
             // The file exists, but we want to replace it with a fresh copy from the device.
@@ -160,11 +163,11 @@ public class BootscreenHelper {
     }
 
     /**
-     * Called when loading DEVICE_COPY from the SD Card into the Bootscreen object.
+     * Checks over a Bitmap object and attempts to load it into the Bootscreen object.
+     * @param bitmap The given Bitmap object.
      */
-    private void bitmapToBootscreen() {
+    private void bitmapToBootscreen(Bitmap bitmap) {
 
-        Bitmap bitmap = BitmapFactory.decodeFile(PREFIX_FILE_DIRECTORY + "/" + FILENAME_DEVICE_BACKUP);
         if (bitmap == null) {
             Log.e(LOG_TAG, "Could not read the bitmap file! It may be corrupt. Pull a new copy from the device.");
             callbackFailure("Could not read the bootscreen's bitmap file. It may be corrupt. Try pulling a new copy.",
@@ -174,6 +177,30 @@ public class BootscreenHelper {
         mBootscreen.setOriginalState(bitmap, true);
         Log.i(LOG_TAG, "Device bitmap successfully loaded into the Bootscreen object.");
         callbackSuccess("Device bitmap successfully loaded into editor!", true);
+    }
+
+    /**
+     * Shortcut for loading DEVICE_COPY from the SD Card into the Bootscreen object.
+     */
+    private void bitmapToBootscreen() {
+
+        Bitmap bitmap = BitmapFactory.decodeFile(PREFIX_FILE_DIRECTORY + "/" + FILENAME_DEVICE_BACKUP);
+        bitmapToBootscreen(bitmap);
+    }
+
+    /**
+     * Shortcut for calling loading the stock bootscreen graphic into the Bootscreen object.
+     */
+    public void stockBitmapToBootscreen() {
+
+        try {
+            InputStream open = mContext.getAssets().open(ASSET_FILENAME_DEFAULT_GRAPHIC);
+            Bitmap bitmap = BitmapFactory.decodeStream(open);
+            bitmapToBootscreen(bitmap);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "STOCK IMAGE DOES NOT WORK");
+            bitmapToBootscreen(null);
+        }
     }
 
     /**

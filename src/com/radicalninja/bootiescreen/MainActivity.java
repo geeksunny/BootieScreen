@@ -48,6 +48,9 @@ public class MainActivity extends Activity {
     private static final int DEFAULT_TYPEFACE = 0;
     private static final int DEFAULT_POSITION = 1024;
 
+    private static final int FONTFILE_MOTOSANSWEB_REGULAR = 1;
+    private static final int FONTFILE_MOTOSANSWEB_SEMIBOLD = 2;
+
 	DrawerLayout drawerLayout;
     ActionBarDrawerToggle mDrawerToggle;
 	FrameLayout leftDrawer;
@@ -588,6 +591,8 @@ public class MainActivity extends Activity {
 		//TODO: Change this from a Spinner to a radio selection group, and each option shows a preview of the typeface.
 
 		Map<String, Typeface> typefaceMap = new HashMap<String, Typeface>();
+        typefaceMap.put("Moto Sans", loadFontFile(FONTFILE_MOTOSANSWEB_REGULAR));
+        typefaceMap.put("Moto Sans, Semibold", loadFontFile(FONTFILE_MOTOSANSWEB_SEMIBOLD));
 		typefaceMap.put("Sans Serif", Typeface.DEFAULT);
 		typefaceMap.put("Sans Serif, Bold", Typeface.DEFAULT_BOLD);
 		typefaceMap.put("Monospace", Typeface.MONOSPACE);
@@ -595,6 +600,24 @@ public class MainActivity extends Activity {
 
 		return typefaceMap.get((String) inputTypeface.getAdapter().getItem(inputTypeface.getSelectedItemPosition()));
 	}
+
+    /**
+     * Create a Typeface object from a requested external font.
+     * @param fontFileId The given font file ID. Use a constant prefixed with FONTFILE_.
+     * @return Returns a Typeface object representing the requested font.
+     */
+    private Typeface loadFontFile(int fontFileId) {
+
+        switch (fontFileId) {
+            case FONTFILE_MOTOSANSWEB_REGULAR:
+                return Typeface.createFromAsset(getAssets(), "MotoSansWeb-Regular.ttf");
+            case FONTFILE_MOTOSANSWEB_SEMIBOLD:
+                return Typeface.createFromAsset(getAssets(), "MotoSansWeb-Semibold.ttf");
+            default:
+                Log.e(LOG_TAG, String.format("FONT FILE ID# %d IS UNKNOWN", fontFileId));
+                return Typeface.DEFAULT;
+        }
+    }
 
     /**
      * Loads the bootscreen graphic from the device into the app's editor.

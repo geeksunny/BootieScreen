@@ -268,7 +268,9 @@ public class MainActivity extends Activity {
         enforceDeviceRestrictions();
         enforceRootRequirement();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
-		loadImage(false);
+        if (!drawerLayout.isDrawerOpen(leftDrawer)) {
+            loadImage(false);
+        }
 	}
 
 	@Override

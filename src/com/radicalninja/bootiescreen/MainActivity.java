@@ -124,7 +124,6 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) { }
-
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) { }
 
@@ -140,7 +139,6 @@ public class MainActivity extends Activity {
 
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
-
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
 
@@ -185,12 +183,9 @@ public class MainActivity extends Activity {
         inputVerticalPosition.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-
+            public void onStopTrackingTouch(SeekBar seekBar) { }
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -205,7 +200,6 @@ public class MainActivity extends Activity {
 
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
-
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
 
@@ -309,8 +303,6 @@ public class MainActivity extends Activity {
 	public void onResume() {
 
 		super.onResume();
-		// Reset bitmap to original state.
-		//bootscreen.
 	}
 	
 	/**
@@ -754,9 +746,6 @@ public class MainActivity extends Activity {
 				alertDialog.show();
 		}
 	}
-	
-	//Get Root status.  If root is not attained or app is not given access show message and 
-	//exit app after dialog is shown. If root is available then loadImage.
 
     /**
      * Get root status. If root is not available and allowed, kill the app.

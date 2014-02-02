@@ -53,6 +53,8 @@ public class MainActivity extends Activity {
     private static final int FONTFILE_MOTOSANSWEB_REGULAR = 1;
     private static final int FONTFILE_MOTOSANSWEB_SEMIBOLD = 2;
 
+    Map<String, Typeface> typefaceMap;
+
 	DrawerLayout drawerLayout;
     ActionBarDrawerToggle mDrawerToggle;
 	FrameLayout leftDrawer;
@@ -240,6 +242,8 @@ public class MainActivity extends Activity {
 		// - Preview Button
 		buttonPreview = (Button) findViewById(R.id.buttonPreview);
 		buttonPreview.setOnClickListener(previewButtonClicked);
+        buttonPreview.setEnabled(false);
+        buttonPreview.setText(R.string.buttonPreviewLabelDisabled);
 		// - Save Button
 		buttonSave = (Button) findViewById(R.id.buttonSave);
 		buttonSave.setOnClickListener(saveButtonClicked);
@@ -264,7 +268,30 @@ public class MainActivity extends Activity {
         int inputVerticalPos = settings.getInt("inputVerticalPos", DEFAULT_POSITION);
         textVerticalPositionValue.setText(Integer.toString(inputVerticalPos));
 
-	}
+        // ~~ BACKGROUND INITIALIZATIONS HAPPEN HERE! BUILD OUT ASYNCTASK FOR FURTHER WORK! ~~
+        // - Typeface objects. Load fonts on the background thread. Enable preview button upon completion.
+        typefaceMap = new HashMap<String, Typeface>();
+        class BackgroundInitializationTask extends AsyncTask<Void, Void, Void> {
+
+            protected Void doInBackground(Void... params) {
+                typefaceMap.put("Moto Sans", loadFontFile(FONTFILE_MOTOSANSWEB_REGULAR));
+                typefaceMap.put("Moto Sans, Semibold", loadFontFile(FONTFILE_MOTOSANSWEB_SEMIBOLD));
+                typefaceMap.put("Sans Serif", Typeface.DEFAULT);
+                typefaceMap.put("Sans Serif, Bold", Typeface.DEFAULT_BOLD);
+                typefaceMap.put("Monospace", Typeface.MONOSPACE);
+                typefaceMap.put("Serif", Typeface.SERIF);
+                return null;
+            }
+            //protected void onPreExecute() { }
+            //protected void onProgressUpdate(Void... status) { }
+            protected void onPostExecute(Void result) {
+                buttonPreview.setEnabled(true);
+                buttonPreview.setText(R.string.buttonPreviewLabelEnabled);
+            }
+        }
+        BackgroundInitializationTask bgTask = new BackgroundInitializationTask();
+        bgTask.execute();
+    }
 
 	@Override
 	public void onStart() {
@@ -590,15 +617,6 @@ public class MainActivity extends Activity {
 	 * Get the Typeface object for the current selected typeface
 	 */
 	private Typeface getTypeface() {
-		//TODO: Change this from a Spinner to a radio selection group, and each option shows a preview of the typeface.
-
-		Map<String, Typeface> typefaceMap = new HashMap<String, Typeface>();
-        typefaceMap.put("Moto Sans", loadFontFile(FONTFILE_MOTOSANSWEB_REGULAR));
-        typefaceMap.put("Moto Sans, Semibold", loadFontFile(FONTFILE_MOTOSANSWEB_SEMIBOLD));
-		typefaceMap.put("Sans Serif", Typeface.DEFAULT);
-		typefaceMap.put("Sans Serif, Bold", Typeface.DEFAULT_BOLD);
-		typefaceMap.put("Monospace", Typeface.MONOSPACE);
-		typefaceMap.put("Serif", Typeface.SERIF);
 
 		return typefaceMap.get((String) inputTypeface.getAdapter().getItem(inputTypeface.getSelectedItemPosition()));
 	}
@@ -691,8 +709,8 @@ public class MainActivity extends Activity {
                         return null;
                     }
                     //protected void onPreExecute() { }
-                    //protected void onProgressUpdate() { }
-                    //protected void onPostExecute() { }
+                    //protected void onProgressUpdate(Void... status) { }
+                    //protected void onPostExecute(Void result) { }
                 }
                 // - Create the task and execute
                 SaveBitmapTask task = new SaveBitmapTask();

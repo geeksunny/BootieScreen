@@ -3,6 +3,8 @@ package com.radicalninja.bootiescreen;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -660,7 +662,6 @@ public class MainActivity extends Activity {
      * Loads the stock bootscreen graphic from the app's asset folder into the app's editor.
      */
     private void loadStockImage() {
-        //TODO: Copy stock logo to sdcard for future use. Should probably be handled on a background thread.
         // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
         mBootscreenHelper = new BootscreenHelper(parent);
         // Creating our callback object for handling the outcome of .loadDeviceBootscreen().
@@ -668,7 +669,34 @@ public class MainActivity extends Activity {
             @Override
             void onSuccess(String successMessage) {
                 // Set the preview image.
-                previewView.setImageBitmap(mBootscreenHelper.getBitmap());
+                Bitmap bitmap = mBootscreenHelper.getBitmap();
+                previewView.setImageBitmap(bitmap);
+                // Save the stock bitmap to the sdcard for future use.
+                // - Task data model
+                class BitmapTaskInfo {
+                    Bitmap bitmap;
+                    String filename;
+                    public BitmapTaskInfo(Bitmap b, String f) {
+                        bitmap = b;
+                        filename = f;
+                    }
+                }
+                // - AsyncTask code
+                class SaveBitmapTask extends AsyncTask<BitmapTaskInfo, Void, Void> {
+
+                    protected Void doInBackground(BitmapTaskInfo... taskInfo) {
+                        for (BitmapTaskInfo info : taskInfo) {
+                            mBootscreenHelper.saveBitmapToSdcard(info.bitmap, info.filename);
+                        }
+                        return null;
+                    }
+                    //protected void onPreExecute() { }
+                    //protected void onProgressUpdate() { }
+                    //protected void onPostExecute() { }
+                }
+                // - Create the task and execute
+                SaveBitmapTask task = new SaveBitmapTask();
+                task.execute(new BitmapTaskInfo(bitmap, mBootscreenHelper.FILENAME_DEVICE_BACKUP));
             }
 
             @Override

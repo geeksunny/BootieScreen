@@ -406,7 +406,7 @@ public class BootscreenHelper {
 		 * 2. write this file to the blockdevice using dd
 		 * 3. check outcome; if successful, offer to reboot.
 		 */
-        if (saveBitmap()) {
+        if (saveBitmapToSdcard(mBootscreen.getBitmap(), FILENAME_WORKING_COPY)) {
             Log.i(LOG_TAG, "Bitmap saved to disk! Now attempting to write it to the block device.");
             if (!pushBootscreenToDevice()) {
                 Log.e(LOG_TAG, "Looks like something didn't work on the installation! Check further up in the log for related details!");
@@ -495,17 +495,17 @@ public class BootscreenHelper {
      * Utilizes com.ultrasonic.android.image.bitmap.util to save a .bmp file to the SD card.
      * @return Returns true on confirmed existence of the new .bmp file.
      */
-    public boolean saveBitmap() {
+    public boolean saveBitmapToSdcard(Bitmap bitmap, String filename) {
 
-        // Delete any existing workingCopy .bmp file to ensure we are working with a clean slate.
-        if (!deleteFileIfExists(FILENAME_WORKING_COPY)) {
-            Log.e(LOG_TAG, "Could not delete an existing "+FILENAME_WORKING_COPY+" file.");
+        // Delete any existing file at `filename` to ensure we are working with a clean slate.
+        if (!deleteFileIfExists(filename)) {
+            Log.e(LOG_TAG, "Could not delete an existing "+filename+" file.");
             return false;
         }
         // Compress and save workingCopy Bitmap to WORKING_COPY.
         AndroidBmpUtil bmpUtil = new AndroidBmpUtil();
-        boolean isSaveResult = bmpUtil.save(mBootscreen.getBitmap(), PREFIX_FILE_DIRECTORY +"/"+FILENAME_WORKING_COPY);
-        if (isSaveResult && fileExists(FILENAME_WORKING_COPY)) {
+        boolean isSaveResult = bmpUtil.save(bitmap, String.format("%s/%s", PREFIX_FILE_DIRECTORY, filename));
+        if (isSaveResult && fileExists(filename)) {
             return true;
         } else {
             return false;

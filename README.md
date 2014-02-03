@@ -17,6 +17,10 @@ MotoMaker in your pocket!
 
 * [**HoloColorPicker**](https://github.com/LarsWerkman/HoloColorPicker)
 
+## Contributors
+
+* jimmydafish
+
 ## Thanks
 
 * **jcase** over at XDA Developers for [his root methods on the Moto X](http://forum.xda-developers.com/showthread.php?t=2538896) and for the [information about flashing clogo](http://forum.xda-developers.com/showthread.php?t=2445150).

@@ -12,29 +12,31 @@
     <string name="buttonColorPickerLabel">Pick a Color</string>
     <string name="inputTypefaceLabel">Typeface</string>
     <string name="inputVerticalPositionLabel">Vertical Position (in pixels from the top)</string>
-    <string name="buttonPreviewLabel">Show Preview</string>
+    <string name="buttonPreviewLabelEnabled">Show Preview</string>
+    <string name="buttonPreviewLabelDisabled">Working...</string>
     <string name="buttonSaveLabel">Personalize Bootscreen</string>
     <string-array name="inputTypeface">
-        <item >Sans Serif</item>
-        <item >Sans Serif, Bold</item>
-        <item >Monospace</item>
-        <item >Serif</item>
+        <item>Moto Sans</item>
+        <item>Moto Sans, Semibold</item>
+        <item>Sans Serif</item>
+        <item>Sans Serif, Bold</item>
+        <item>Monospace</item>
+        <item>Serif</item>
     </string-array>
     <string-array name="inputColor">
-        <item >BLACK</item>
-        <item >BLUE</item>
-        <item >CYAN</item>
-        <item >DKGRAY</item>
-        <item >GRAY</item>
-        <item >GREEN</item>
-        <item >LTGRAY</item>
-        <item >MAGENTA</item>
-        <item >RED</item>
-        <item >WHITE</item>
-        <item >YELLOW</item>
+        <item>BLACK</item>
+        <item>BLUE</item>
+        <item>CYAN</item>
+        <item>DKGRAY</item>
+        <item>GRAY</item>
+        <item>GREEN</item>
+        <item>LTGRAY</item>
+        <item>MAGENTA</item>
+        <item>RED</item>
+        <item>WHITE</item>
+        <item>YELLOW</item>
     </string-array>
     <string name="actionBarContentOpen">Open Drawer</string>
     <string name="actionBarContentClose">Close Drawer</string>
-    
 
 </resources>

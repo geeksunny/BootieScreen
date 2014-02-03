@@ -94,4 +94,32 @@ public final class RootHelper {
 			}
 		}
 	}
+
+    /**
+     * Checks if the current device is included in a given list of device models.
+     * @param deviceList A String[] array containing a list of potential device models.
+     * @return Returns true if the current device is included in the deviceList, otherwise false.
+     */
+    public static boolean deviceInList(String[] deviceList) {
+
+        for (String model: deviceList) {
+            if (android.os.Build.DEVICE.equalsIgnoreCase(model) == true) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A shortcut method for checking if root access is available and allowed.
+     * @return Returns true if root access is available and allowed by the user.
+     */
+    public static boolean rootIsAvailable() {
+
+        if (RootTools.isRootAvailable() && RootTools.isAccessGiven()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

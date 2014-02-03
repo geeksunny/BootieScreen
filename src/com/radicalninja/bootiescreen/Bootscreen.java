@@ -11,6 +11,7 @@ public class Bootscreen extends Canvas {
 	public static final int BOOTSCREEN_RESOLUTION_WIDTH = 720;
 	public static final int BOOTSCREEN_RESOLUTION_HEIGHT = 1280;
 	private static final String LOG_TAG = "Bootscreen";
+    private static final Bitmap.Config BOOTSCREEN_BITMAP_CONFIG = Bitmap.Config.ARGB_8888;
 	private Context mContext;
 	private Bitmap mOriginalState;
 	private Bitmap mWorkingCopy;
@@ -57,7 +58,7 @@ public class Bootscreen extends Canvas {
      * @return Returns an empty Bitmap object at the resolution specified by the object's constants.
      */
     public static Bitmap createEmptyBitmap() {
-        return Bitmap.createBitmap(BOOTSCREEN_RESOLUTION_WIDTH, BOOTSCREEN_RESOLUTION_HEIGHT, Bitmap.Config.ARGB_8888);
+        return Bitmap.createBitmap(BOOTSCREEN_RESOLUTION_WIDTH, BOOTSCREEN_RESOLUTION_HEIGHT, BOOTSCREEN_BITMAP_CONFIG);
     }
 
 	/**
@@ -76,7 +77,7 @@ public class Bootscreen extends Canvas {
 	 */
 	public Bootscreen resetBitmap() {
 
-		setWorkingBitmap(mOriginalState.copy(mOriginalState.getConfig(), true));
+		setWorkingBitmap(mOriginalState.copy(BOOTSCREEN_BITMAP_CONFIG, true));
         return this;
 	}
 	
@@ -102,7 +103,7 @@ public class Bootscreen extends Canvas {
 
         mOriginalState = bitmap;
         if (updateWorkingCopy) {
-            setWorkingBitmap(mOriginalState.copy(mOriginalState.getConfig(), true));
+            setWorkingBitmap(mOriginalState.copy(BOOTSCREEN_BITMAP_CONFIG, true));
         }
         return this;
     }

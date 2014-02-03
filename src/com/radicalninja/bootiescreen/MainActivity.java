@@ -3,6 +3,8 @@ package com.radicalninja.bootiescreen;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -34,19 +36,24 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-	// TODO Add code that checks build.prop for device name and force quit if user does not have Moto X (Or other possibly compatible devices, like the mini or G maybe?)
 	// TODO Go through and standardize Javadoc comments.
 	// TODO Review project's object code organization and variable privileges.
 	final MainActivity parent = this;
 	private static final String LOG_TAG = "MainActivity";
 	private static final String PREFS_NAME = "BootscreenPrefs";
 
+    private static final String[] SUPPORTED_DEVICES = {"ghost"};
     private static final int FONT_SIZE_MINIMUM = 16;
     private static final int FONT_SIZE_MAXIMUM = 96;
     private static final int DEFAULT_FONT_SIZE = 36;
     private static final int DEFAULT_COLOR = Color.BLACK;
     private static final int DEFAULT_TYPEFACE = 0;
     private static final int DEFAULT_POSITION = 1024;
+
+    private static final int FONTFILE_MOTOSANSWEB_REGULAR = 1;
+    private static final int FONTFILE_MOTOSANSWEB_SEMIBOLD = 2;
+
+    Map<String, Typeface> typefaceMap;
 
 	DrawerLayout drawerLayout;
     ActionBarDrawerToggle mDrawerToggle;
@@ -117,7 +124,6 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) { }
-
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) { }
 
@@ -133,7 +139,6 @@ public class MainActivity extends Activity {
 
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
-
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
 
@@ -178,12 +183,9 @@ public class MainActivity extends Activity {
         inputVerticalPosition.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-
+            public void onStopTrackingTouch(SeekBar seekBar) { }
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) { }
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -198,7 +200,6 @@ public class MainActivity extends Activity {
 
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
-
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
 
@@ -235,6 +236,8 @@ public class MainActivity extends Activity {
 		// - Preview Button
 		buttonPreview = (Button) findViewById(R.id.buttonPreview);
 		buttonPreview.setOnClickListener(previewButtonClicked);
+        buttonPreview.setEnabled(false);
+        buttonPreview.setText(R.string.buttonPreviewLabelDisabled);
 		// - Save Button
 		buttonSave = (Button) findViewById(R.id.buttonSave);
 		buttonSave.setOnClickListener(saveButtonClicked);
@@ -259,22 +262,47 @@ public class MainActivity extends Activity {
         int inputVerticalPos = settings.getInt("inputVerticalPos", DEFAULT_POSITION);
         textVerticalPositionValue.setText(Integer.toString(inputVerticalPos));
 
-	}
+        // ~~ BACKGROUND INITIALIZATIONS HAPPEN HERE! BUILD OUT ASYNCTASK FOR FURTHER WORK! ~~
+        // - Typeface objects. Load fonts on the background thread. Enable preview button upon completion.
+        typefaceMap = new HashMap<String, Typeface>();
+        class BackgroundInitializationTask extends AsyncTask<Void, Void, Void> {
+
+            protected Void doInBackground(Void... params) {
+                typefaceMap.put("Moto Sans", loadFontFile(FONTFILE_MOTOSANSWEB_REGULAR));
+                typefaceMap.put("Moto Sans, Semibold", loadFontFile(FONTFILE_MOTOSANSWEB_SEMIBOLD));
+                typefaceMap.put("Sans Serif", Typeface.DEFAULT);
+                typefaceMap.put("Sans Serif, Bold", Typeface.DEFAULT_BOLD);
+                typefaceMap.put("Monospace", Typeface.MONOSPACE);
+                typefaceMap.put("Serif", Typeface.SERIF);
+                return null;
+            }
+            //protected void onPreExecute() { }
+            //protected void onProgressUpdate(Void... status) { }
+            protected void onPostExecute(Void result) {
+                buttonPreview.setEnabled(true);
+                buttonPreview.setText(R.string.buttonPreviewLabelEnabled);
+            }
+        }
+        BackgroundInitializationTask bgTask = new BackgroundInitializationTask();
+        bgTask.execute();
+    }
 
 	@Override
 	public void onStart() {
 
 		super.onStart();
+        enforceDeviceRestrictions();
+        enforceRootRequirement();
 		// Start off with the DEVICE_BACKUP image, automatically pulling one if it does not exist.
-		loadImage(false);
+        if (!drawerLayout.isDrawerOpen(leftDrawer)) {
+            loadImage(false);
+        }
 	}
 
 	@Override
 	public void onResume() {
 
 		super.onResume();
-		// Reset bitmap to original state.
-		//bootscreen.
 	}
 	
 	/**
@@ -581,16 +609,27 @@ public class MainActivity extends Activity {
 	 * Get the Typeface object for the current selected typeface
 	 */
 	private Typeface getTypeface() {
-		//TODO: Change this from a Spinner to a radio selection group, and each option shows a preview of the typeface.
-
-		Map<String, Typeface> typefaceMap = new HashMap<String, Typeface>();
-		typefaceMap.put("Sans Serif", Typeface.DEFAULT);
-		typefaceMap.put("Sans Serif, Bold", Typeface.DEFAULT_BOLD);
-		typefaceMap.put("Monospace", Typeface.MONOSPACE);
-		typefaceMap.put("Serif", Typeface.SERIF);
 
 		return typefaceMap.get((String) inputTypeface.getAdapter().getItem(inputTypeface.getSelectedItemPosition()));
 	}
+
+    /**
+     * Create a Typeface object from a requested external font.
+     * @param fontFileId The given font file ID. Use a constant prefixed with FONTFILE_.
+     * @return Returns a Typeface object representing the requested font.
+     */
+    private Typeface loadFontFile(int fontFileId) {
+
+        switch (fontFileId) {
+            case FONTFILE_MOTOSANSWEB_REGULAR:
+                return Typeface.createFromAsset(getAssets(), "MotoSansWeb-Regular.ttf");
+            case FONTFILE_MOTOSANSWEB_SEMIBOLD:
+                return Typeface.createFromAsset(getAssets(), "MotoSansWeb-Semibold.ttf");
+            default:
+                Log.e(LOG_TAG, String.format("FONT FILE ID# %d IS UNKNOWN", fontFileId));
+                return Typeface.DEFAULT;
+        }
+    }
 
     /**
      * Loads the bootscreen graphic from the device into the app's editor.
@@ -609,7 +648,15 @@ public class MainActivity extends Activity {
 
             @Override
             void onFailure(String failureMessage, int flag) {
-                Toast.makeText(parent, failureMessage, Toast.LENGTH_LONG).show();
+                if (flag == BootscreenHelperCallback.FLAG_BITMAP_CORRUPT) {
+
+                    Toast.makeText(parent,
+                            "Your device's clogo is either empty or corrupt. Loading stock image into editor.",
+                            Toast.LENGTH_LONG).show();
+                    loadStockImage();
+                } else {
+                    Toast.makeText(parent, failureMessage, Toast.LENGTH_LONG).show();
+                }
             }
 
             @Override
@@ -619,6 +666,106 @@ public class MainActivity extends Activity {
         mBootscreenHelper
                 .setCallback(loadScreenCallback)
                 .loadDeviceBootscreen(forceNewPull);
+    }
+
+    /**
+     * Loads the stock bootscreen graphic from the app's asset folder into the app's editor.
+     */
+    private void loadStockImage() {
+        // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
+        mBootscreenHelper = new BootscreenHelper(parent);
+        // Creating our callback object for handling the outcome of .loadDeviceBootscreen().
+        BootscreenHelperCallback loadScreenCallback = new BootscreenHelperCallback() {
+            @Override
+            void onSuccess(String successMessage) {
+                // Set the preview image.
+                Bitmap bitmap = mBootscreenHelper.getBitmap();
+                previewView.setImageBitmap(bitmap);
+                // Save the stock bitmap to the sdcard for future use.
+                // - Task data model
+                class BitmapTaskInfo {
+                    Bitmap bitmap;
+                    String filename;
+                    public BitmapTaskInfo(Bitmap b, String f) {
+                        bitmap = b;
+                        filename = f;
+                    }
+                }
+                // - AsyncTask code
+                class SaveBitmapTask extends AsyncTask<BitmapTaskInfo, Void, Void> {
+
+                    protected Void doInBackground(BitmapTaskInfo... taskInfo) {
+                        for (BitmapTaskInfo info : taskInfo) {
+                            mBootscreenHelper.saveBitmapToSdcard(info.bitmap, info.filename);
+                        }
+                        return null;
+                    }
+                    //protected void onPreExecute() { }
+                    //protected void onProgressUpdate(Void... status) { }
+                    //protected void onPostExecute(Void result) { }
+                }
+                // - Create the task and execute
+                SaveBitmapTask task = new SaveBitmapTask();
+                task.execute(new BitmapTaskInfo(bitmap, mBootscreenHelper.FILENAME_DEVICE_BACKUP));
+            }
+
+            @Override
+            void onFailure(String failureMessage, int flag) {
+                Toast.makeText(parent,
+                        "The stock image could not be loaded into the editor.",
+                        Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            void onNeutral(String neutralMessage) { }
+        };
+        // Load the bitmap into the Bootscreen object
+        mBootscreenHelper
+                .setCallback(loadScreenCallback)
+                .stockBitmapToBootscreen();
+    }
+
+    /**
+     * Ensures that the user is running one of the SUPPORTED_DEVICES and kills the app if not.
+     */
+	private void enforceDeviceRestrictions(){
+
+		if (!RootHelper.deviceInList(SUPPORTED_DEVICES)) {
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+			alertDialogBuilder.setTitle("Device Error");
+			alertDialogBuilder
+				.setMessage("Your device is not supported. BootieScreen will now close.")
+				.setCancelable(false)
+				.setPositiveButton("OK",new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog,int id) {
+						dialog.cancel();
+						finish();
+					}
+				  });
+				AlertDialog alertDialog = alertDialogBuilder.create();
+				alertDialog.show();
+		}
+	}
+
+    /**
+     * Get root status. If root is not available and allowed, kill the app.
+     */
+	private void enforceRootRequirement() {
+		if (!RootHelper.rootIsAvailable()) {
+			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+			alertDialogBuilder.setTitle("Device Error");
+			alertDialogBuilder
+				.setMessage("Your device is not rooted or BootieScreen does not have root access. BootieScreen will now close.")
+				.setCancelable(false)
+				.setPositiveButton("OK",new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog,int id) {
+						dialog.cancel();
+						finish();
+					}
+				  });
+				AlertDialog alertDialog = alertDialogBuilder.create();
+				alertDialog.show();
+		}
 	}
 
 	/**

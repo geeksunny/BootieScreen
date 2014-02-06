@@ -18,6 +18,10 @@ import java.util.concurrent.TimeoutException;
 
 public class BootscreenHelper {
 
+    /**
+     * Use this flag as an indicator when you want to load the stock boot graphic from the assets.
+     */
+    public static final String LOAD_STOCK_IMAGE = "||$STOCK$||";
     private static final String LOG_TAG = "BootscreenHelper";
     private Context mContext;
     private Bootscreen mBootscreen;
@@ -189,6 +193,20 @@ public class BootscreenHelper {
     }
 
     /**
+     * Shortcut for loading a bitmap graphic file into the Bootscreen object.
+     * @param filePath The absolute filesystem path to the bitmap graphic file.
+     */
+    public void bitmapToBootscreen(String filePath) {
+
+        if (filePath == LOAD_STOCK_IMAGE) {
+            stockBitmapToBootscreen();
+        } else {
+            Bitmap bitmap = BitmapFactory.decodeFile(filePath);
+            bitmapToBootscreen(bitmap);
+        }
+    }
+
+    /**
      * Shortcut for calling loading the stock bootscreen graphic into the Bootscreen object.
      */
     public void stockBitmapToBootscreen() {
@@ -199,7 +217,7 @@ public class BootscreenHelper {
             bitmapToBootscreen(bitmap);
         } catch (IOException e) {
             Log.e(LOG_TAG, "STOCK IMAGE DOES NOT WORK");
-            bitmapToBootscreen(null);
+            bitmapToBootscreen((Bitmap) null);
         }
     }
 

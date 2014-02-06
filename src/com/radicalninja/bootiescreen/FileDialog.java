@@ -28,7 +28,7 @@ public class FileDialog {
     private ListenerList<DirectorySelectedListener> dirListenerList = new ListenerList<FileDialog.DirectorySelectedListener>();
     private final Activity activity;
     private boolean selectDirectoryOption;
-    private String fileEndsWith;
+    private String[] fileEndsWith;
 
     /**
      * @param activity
@@ -42,7 +42,14 @@ public class FileDialog {
 
     public FileDialog(Activity activity, File path, String fileEndsWith) {
         this.activity = activity;
-        this.fileEndsWith = fileEndsWith;
+        setFileEndsWith(fileEndsWith);
+        if (!path.exists()) path = Environment.getExternalStorageDirectory();
+        loadFileList(path);
+    }
+
+    public FileDialog(Activity activity, File path, String[] fileEndsWith) {
+        this.activity = activity;
+        setFileEndsWith(fileEndsWith);
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
         loadFileList(path);
     }
@@ -136,7 +143,7 @@ public class FileDialog {
                     if (!sel.canRead()) return false;
                     if (selectDirectoryOption) return sel.isDirectory();
                     else {
-                        boolean endsWith = fileEndsWith != null ? filename.toLowerCase().endsWith(fileEndsWith) : true;
+                        boolean endsWith = checkFileEndsWith(filename);
                         return endsWith || sel.isDirectory();
                     }
                 }
@@ -155,7 +162,28 @@ public class FileDialog {
     }
 
     public void setFileEndsWith(String fileEndsWith) {
-        this.fileEndsWith = fileEndsWith != null ? fileEndsWith.toLowerCase() : fileEndsWith;
+
+        if (fileEndsWith != null) {
+            this.fileEndsWith = new String[1];
+            this.fileEndsWith[0] = fileEndsWith.toLowerCase();
+        } else {
+            this.fileEndsWith = null;
+        }
+    }
+
+    public void setFileEndsWith(String[] fileEndsWith) {
+
+        this.fileEndsWith = fileEndsWith;
+    }
+
+    private boolean checkFileEndsWith(String filename) {
+
+        for (String endsWith : this.fileEndsWith) {
+            if (filename.toLowerCase().endsWith(endsWith)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

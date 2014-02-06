@@ -10,4 +10,6 @@
 
     <item android:id="@+id/action_restoreBackup" android:title="@string/action_restoreBackup" android:showAsAction="never" android:orderInCategory="101"></item>
 
+    <item android:id="@+id/action_installGraphic" android:title="@string/action_installGraphic" android:showAsAction="never" android:orderInCategory="102"></item>
+
 </menu>

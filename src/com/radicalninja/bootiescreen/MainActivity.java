@@ -1,5 +1,6 @@
 package com.radicalninja.bootiescreen;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Environment;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.text.Editable;
@@ -450,6 +452,20 @@ public class MainActivity extends Activity {
 				.show();
 
 			return true;
+        case R.id.action_installGraphic:
+            File mPath = new File(Environment.getExternalStorageDirectory().getPath());
+            String[] fileEndsWith = { ".png", ".bmp", ".jpg" };
+            FileDialog fileDialog = new FileDialog(this, mPath, fileEndsWith);
+            fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
+                public void fileSelected(File file) {
+                    Log.d(getClass().getName(), "selected file " + file.toString());
+                    // ASSUMING THE FILE PATH IS GOOD... SHOULD VERIFY THIS
+                    // ALSO NEED TO OPEN FILE AND VERIFY IT IS PROPER DIMENSIONS, OFFER TO RESIZE IF NOT.
+                    loadImage(file.toString());
+                }
+            });
+            fileDialog.showDialog();
+            return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -653,7 +669,7 @@ public class MainActivity extends Activity {
                     Toast.makeText(parent,
                             "Your device's clogo is either empty or corrupt. Loading stock image into editor.",
                             Toast.LENGTH_LONG).show();
-                    loadStockImage();
+                    loadImage(BootscreenHelper.LOAD_STOCK_IMAGE);
                 } else {
                     Toast.makeText(parent, failureMessage, Toast.LENGTH_LONG).show();
                 }
@@ -671,7 +687,7 @@ public class MainActivity extends Activity {
     /**
      * Loads the stock bootscreen graphic from the app's asset folder into the app's editor.
      */
-    private void loadStockImage() {
+    private void loadImage(String filePath) {
         // Create the BootscreenHelperCallback object to be used during the .loadDeviceBootscreen() action.
         mBootscreenHelper = new BootscreenHelper(parent);
         // Creating our callback object for handling the outcome of .loadDeviceBootscreen().
@@ -722,7 +738,7 @@ public class MainActivity extends Activity {
         // Load the bitmap into the Bootscreen object
         mBootscreenHelper
                 .setCallback(loadScreenCallback)
-                .stockBitmapToBootscreen();
+                .bitmapToBootscreen(filePath);
     }
 
     /**
@@ -767,15 +783,6 @@ public class MainActivity extends Activity {
 				alertDialog.show();
 		}
 	}
-
-	/**
-	 * Loads the given com.android.graphics.Bitmap into memory / the preview pane.
-	 * @param	bitmap	The given Bitmap object to load.
-	 */
-    // ~~~ NOT BEING USED AT THE MOMENT ~~~ //
-	//private void loadImage(Bitmap bitmap) {
-	//	previewView.setImageBitmap(bitmap);
-	//}
 
     /**
      * Convenience method shortcut for converting a string to an integer.

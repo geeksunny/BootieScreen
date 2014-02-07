@@ -11,13 +11,14 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class FileDialog {
-    //TODO: Extend Dialog to modify the back button's behavior to go back to the previous directory.
+
     private static final String PARENT_DIR = "..";
     private final String TAG = getClass().getName();
-    private String[] fileList;
-    private File currentPath;
+    private String[] mFileList;
+    private File mCurrentPath;
     public interface FileSelectedListener {
         void fileSelected(File file);
     }
@@ -26,29 +27,52 @@ public class FileDialog {
     }
     private ListenerList<FileSelectedListener> fileListenerList = new ListenerList<FileDialog.FileSelectedListener>();
     private ListenerList<DirectorySelectedListener> dirListenerList = new ListenerList<FileDialog.DirectorySelectedListener>();
-    private final Activity activity;
+    private final Activity mActivity;
     private boolean selectDirectoryOption;
-    private String[] fileEndsWith;
+    private String[] mFileEndsWith;
+    private Stack<String> mFileHistory;
 
-    /**
-     * @param activity
-     * @param path
-     */
     public FileDialog(Activity activity, File path) {
-        this.activity = activity;
+        mFileHistory = new Stack<String>();
+        mActivity = activity;
+        if (!path.exists()) path = Environment.getExternalStorageDirectory();
+        loadFileList(path);
+    }
+
+    public FileDialog(Activity activity, File path, Stack<String> historyObject) {
+        mFileHistory = historyObject;
+        mActivity = activity;
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
         loadFileList(path);
     }
 
     public FileDialog(Activity activity, File path, String fileEndsWith) {
-        this.activity = activity;
+        mFileHistory = new Stack<String>();
+        mActivity = activity;
+        setFileEndsWith(fileEndsWith);
+        if (!path.exists()) path = Environment.getExternalStorageDirectory();
+        loadFileList(path);
+    }
+
+    public FileDialog(Activity activity, File path, String fileEndsWith, Stack<String> historyObject) {
+        mFileHistory = historyObject;
+        mActivity = activity;
         setFileEndsWith(fileEndsWith);
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
         loadFileList(path);
     }
 
     public FileDialog(Activity activity, File path, String[] fileEndsWith) {
-        this.activity = activity;
+        mFileHistory = new Stack<String>();
+        mActivity = activity;
+        setFileEndsWith(fileEndsWith);
+        if (!path.exists()) path = Environment.getExternalStorageDirectory();
+        loadFileList(path);
+    }
+
+    public FileDialog(Activity activity, File path, String[] fileEndsWith, Stack<String> historyObject) {
+        mFileHistory = historyObject;
+        mActivity = activity;
         setFileEndsWith(fileEndsWith);
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
         loadFileList(path);
@@ -59,21 +83,21 @@ public class FileDialog {
      */
     public Dialog createFileDialog() {
         Dialog dialog = null;
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 
-        builder.setTitle(currentPath.getPath());
+        builder.setTitle(mCurrentPath.getPath());
         if (selectDirectoryOption) {
             builder.setPositiveButton("Select directory", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
-                    Log.d(TAG, currentPath.getPath());
-                    fireDirectorySelectedEvent(currentPath);
+                    Log.d(TAG, mCurrentPath.getPath());
+                    fireDirectorySelectedEvent(mCurrentPath);
                 }
             });
         }
 
-        builder.setItems(fileList, new DialogInterface.OnClickListener() {
+        builder.setItems(mFileList, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                String fileChosen = fileList[which];
+                String fileChosen = mFileList[which];
                 File chosenFile = getChosenFile(fileChosen);
                 if (chosenFile.isDirectory()) {
                     loadFileList(chosenFile);
@@ -133,7 +157,7 @@ public class FileDialog {
     }
 
     private void loadFileList(File path) {
-        this.currentPath = path;
+        this.mCurrentPath = path;
         List<String> r = new ArrayList<String>();
         if (path.exists()) {
             if (path.getParentFile() != null) r.add(PARENT_DIR);
@@ -153,32 +177,32 @@ public class FileDialog {
                 r.add(file);
             }
         }
-        fileList = (String[]) r.toArray(new String[]{});
+        mFileList = (String[]) r.toArray(new String[]{});
     }
 
     private File getChosenFile(String fileChosen) {
-        if (fileChosen.equals(PARENT_DIR)) return currentPath.getParentFile();
-        else return new File(currentPath, fileChosen);
+        if (fileChosen.equals(PARENT_DIR)) return mCurrentPath.getParentFile();
+        else return new File(mCurrentPath, fileChosen);
     }
 
     public void setFileEndsWith(String fileEndsWith) {
 
         if (fileEndsWith != null) {
-            this.fileEndsWith = new String[1];
-            this.fileEndsWith[0] = fileEndsWith.toLowerCase();
+            this.mFileEndsWith = new String[1];
+            this.mFileEndsWith[0] = fileEndsWith.toLowerCase();
         } else {
-            this.fileEndsWith = null;
+            this.mFileEndsWith = null;
         }
     }
 
     public void setFileEndsWith(String[] fileEndsWith) {
 
-        this.fileEndsWith = fileEndsWith;
+        this.mFileEndsWith = fileEndsWith;
     }
 
     private boolean checkFileEndsWith(String filename) {
 
-        for (String endsWith : this.fileEndsWith) {
+        for (String endsWith : this.mFileEndsWith) {
             if (filename.toLowerCase().endsWith(endsWith)) {
                 return true;
             }

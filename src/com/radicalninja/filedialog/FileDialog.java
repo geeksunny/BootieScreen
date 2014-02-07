@@ -1,4 +1,4 @@
-package com.radicalninja.bootiescreen;
+package com.radicalninja.filedialog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -84,7 +84,7 @@ public class FileDialog {
             }
         });
 
-        dialog = builder.show();
+        dialog = builder.create();
         return dialog;
     }
 
@@ -187,29 +187,3 @@ public class FileDialog {
     }
 }
 
-class ListenerList<L> {
-    private List<L> listenerList = new ArrayList<L>();
-
-    public interface FireHandler<L> {
-        void fireEvent(L listener);
-    }
-
-    public void add(L listener) {
-        listenerList.add(listener);
-    }
-
-    public void fireEvent(FireHandler<L> fireHandler) {
-        List<L> copy = new ArrayList<L>(listenerList);
-        for (L l : copy) {
-            fireHandler.fireEvent(l);
-        }
-    }
-
-    public void remove(L listener) {
-        listenerList.remove(listener);
-    }
-
-    public List<L> getListenerList() {
-        return listenerList;
-    }
-}

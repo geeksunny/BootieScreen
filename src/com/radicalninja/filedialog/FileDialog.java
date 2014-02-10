@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Environment;
 import android.util.Log;
+import android.view.KeyEvent;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -30,32 +31,16 @@ public class FileDialog {
     private final Activity mActivity;
     private boolean selectDirectoryOption;
     private String[] mFileEndsWith;
+    private boolean fileHistoryEnabled = false;
     private Stack<String> mFileHistory;
 
     public FileDialog(Activity activity, File path) {
-        mFileHistory = new Stack<String>();
-        mActivity = activity;
-        if (!path.exists()) path = Environment.getExternalStorageDirectory();
-        loadFileList(path);
-    }
-
-    public FileDialog(Activity activity, File path, Stack<String> historyObject) {
-        mFileHistory = historyObject;
         mActivity = activity;
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
         loadFileList(path);
     }
 
     public FileDialog(Activity activity, File path, String fileEndsWith) {
-        mFileHistory = new Stack<String>();
-        mActivity = activity;
-        setFileEndsWith(fileEndsWith);
-        if (!path.exists()) path = Environment.getExternalStorageDirectory();
-        loadFileList(path);
-    }
-
-    public FileDialog(Activity activity, File path, String fileEndsWith, Stack<String> historyObject) {
-        mFileHistory = historyObject;
         mActivity = activity;
         setFileEndsWith(fileEndsWith);
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
@@ -63,15 +48,6 @@ public class FileDialog {
     }
 
     public FileDialog(Activity activity, File path, String[] fileEndsWith) {
-        mFileHistory = new Stack<String>();
-        mActivity = activity;
-        setFileEndsWith(fileEndsWith);
-        if (!path.exists()) path = Environment.getExternalStorageDirectory();
-        loadFileList(path);
-    }
-
-    public FileDialog(Activity activity, File path, String[] fileEndsWith, Stack<String> historyObject) {
-        mFileHistory = historyObject;
         mActivity = activity;
         setFileEndsWith(fileEndsWith);
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
@@ -91,6 +67,26 @@ public class FileDialog {
                 public void onClick(DialogInterface dialog, int which) {
                     Log.d(TAG, mCurrentPath.getPath());
                     fireDirectorySelectedEvent(mCurrentPath);
+                }
+            });
+        }
+
+        if (fileHistoryEnabled && historyCanGoBack()) {
+            builder.setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        if (event.getAction() == KeyEvent.ACTION_UP) {
+                            String parent = getHistoryGoBackPath();
+                            File newFile = new File(parent);
+                            loadFileList(newFile);
+                            dialog.cancel();
+                            dialog.dismiss();
+                            showDialog();
+                        }
+                        return true;
+                    }
+                    return false;
                 }
             });
         }
@@ -119,6 +115,24 @@ public class FileDialog {
 
     public void removeFileListener(FileSelectedListener listener) {
         fileListenerList.remove(listener);
+    }
+
+    /**
+     * Set whether the file history feature is enabled or disabled on your file dialog.
+     * @param isEnabled Boolean true if you want the file history feature enabled, or false if otherwise.
+     */
+    public void setFileHistoryEnabled(boolean isEnabled) {
+
+        if (fileHistoryEnabled != isEnabled) {
+            if (isEnabled) {
+                fileHistoryEnabled = true;
+                mFileHistory = new Stack<String>();
+                historyAddCurrent();
+            } else {
+                fileHistoryEnabled = false;
+                mFileHistory = null;
+            }
+        }
     }
 
     public void setSelectDirectoryOption(boolean selectDirectoryOption) {
@@ -177,6 +191,9 @@ public class FileDialog {
                 r.add(file);
             }
         }
+        if (fileHistoryEnabled) {
+            historyAddCurrent();
+        }
         mFileList = (String[]) r.toArray(new String[]{});
     }
 
@@ -208,6 +225,37 @@ public class FileDialog {
             }
         }
         return false;
+    }
+
+    /**
+     * Checks to see if you have a history object to navigate back to.
+     * @return Returns true if you can go back, false if not.
+     */
+    private boolean historyCanGoBack() {
+
+        return (mFileHistory.size() > 1) ? true : false;
+    }
+
+    /**
+     * Removes the last two history items and returns the parent item.
+     * @return Returns the prior item in your file history stack.
+     */
+    private String getHistoryGoBackPath() {
+
+        // Removing the CURRENT directory item from history!
+        mFileHistory.pop();
+        // Removing and RETURNING the parent history item! (Where you're probably going?)
+        return mFileHistory.pop();
+    }
+
+    /**
+     * Add the current path to the top of the history stack.
+     */
+    private void historyAddCurrent() {
+
+        if (mCurrentPath != null) {
+            mFileHistory.push(mCurrentPath.getPath());
+        }
     }
 }
 

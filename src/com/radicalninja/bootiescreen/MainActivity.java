@@ -459,6 +459,7 @@ public class MainActivity extends Activity {
             String[] fileEndsWith = { ".png", ".bmp", ".jpg" };
             FileDialog fileDialog = new FileDialog(this, mPath, fileEndsWith);
             fileDialog.setFileHistoryEnabled(true);
+            fileDialog.setImagePreviewEnabled(true);
             fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
                 public void fileSelected(File file) {
                     Log.d(getClass().getName(), "selected file " + file.toString());

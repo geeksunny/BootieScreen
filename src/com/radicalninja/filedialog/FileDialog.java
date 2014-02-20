@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -33,6 +34,10 @@ public class FileDialog {
     private String[] mFileEndsWith;
     private boolean fileHistoryEnabled = false;
     private Stack<String> mFileHistory;
+    private boolean imagePreviewEnabled = false;
+    private BitmapFileFilter mBitmapFileFilter;
+    // TODO: Build out image file preview window
+    // TODO: Add icon assets for files vs folders and implement a custom listview adapter.
 
     public FileDialog(Activity activity, File path) {
         mActivity = activity;
@@ -100,6 +105,11 @@ public class FileDialog {
                     dialog.cancel();
                     dialog.dismiss();
                     showDialog();
+                } else if (imagePreviewEnabled && passesImageFilterCheck(chosenFile)) {
+                    //TODO: Launch imageDialog here.
+                    Bitmap imageFileBitmap = mBitmapFileFilter.retrieveStoredBitmap();
+                    ImageDialog imgDialog = new ImageDialog(mActivity, imageFileBitmap);
+                    imgDialog.showDialog();
                 } else fireFileSelectedEvent(chosenFile);
             }
         });
@@ -132,6 +142,31 @@ public class FileDialog {
                 fileHistoryEnabled = false;
                 mFileHistory = null;
             }
+        }
+    }
+
+    /**
+     * Set whether the image preview feature is enabled or disabled on your file dialog.
+     * @param isEnabled Boolean true if you want the image preview feature enabled, or false if otherwise.
+     */
+    public void setImagePreviewEnabled(boolean isEnabled) {
+
+        if (imagePreviewEnabled != isEnabled) {
+            if (isEnabled) {
+                imagePreviewEnabled = true;
+                mBitmapFileFilter = new BitmapFileFilter();
+                mBitmapFileFilter.setShouldStoreBitmap(true);
+            } else {
+                imagePreviewEnabled = false;
+                mBitmapFileFilter = null;
+            }
+        }
+    }
+
+    public void setImageResolutionFilter(int targetWidth, int targetHeight) {
+
+        if (imagePreviewEnabled) {
+            mBitmapFileFilter.setTargetResolution(targetWidth, targetHeight);
         }
     }
 
@@ -227,13 +262,18 @@ public class FileDialog {
         return false;
     }
 
+    private boolean passesImageFilterCheck(File file) {
+
+        return mBitmapFileFilter.accept(file);
+    }
+
     /**
      * Checks to see if you have a history object to navigate back to.
      * @return Returns true if you can go back, false if not.
      */
     private boolean historyCanGoBack() {
 
-        return (mFileHistory.size() > 1) ? true : false;
+        return (mFileHistory.size() > 1);
     }
 
     /**

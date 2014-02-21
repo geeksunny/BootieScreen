@@ -13,9 +13,11 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Stack;
 
-public class FileDialog {
+public class FileDialog implements Observer {
 
     private static final String PARENT_DIR = "..";
     private final String TAG = getClass().getName();
@@ -27,8 +29,12 @@ public class FileDialog {
     public interface DirectorySelectedListener {
         void directorySelected(File directory);
     }
+    public interface BitmapSelectedListener {
+        void bitmapSelected(Bitmap bitmap);
+    }
     private ListenerList<FileSelectedListener> fileListenerList = new ListenerList<FileDialog.FileSelectedListener>();
     private ListenerList<DirectorySelectedListener> dirListenerList = new ListenerList<FileDialog.DirectorySelectedListener>();
+    private ListenerList<BitmapSelectedListener> bitmapListenerList = new ListenerList<FileDialog.BitmapSelectedListener>();
     private final Activity mActivity;
     private boolean selectDirectoryOption;
     private String[] mFileEndsWith;
@@ -58,6 +64,17 @@ public class FileDialog {
         setFileEndsWith(fileEndsWith);
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
         loadFileList(path);
+    }
+
+    @Override
+    public void update(Observable observable, Object o) {
+        // This assumes o is a ImageDialog.ImagePayload from ImageDialog. This will change if/when more observables are introduced.
+        ImageDialog.ImagePayload payload = (ImageDialog.ImagePayload) o;
+        if (payload.isPositive) {
+            fireBitmapSelectedEvent(payload.bitmap);
+        } else {
+            showDialog();
+        }
     }
 
     /**
@@ -106,11 +123,37 @@ public class FileDialog {
                     dialog.cancel();
                     dialog.dismiss();
                     showDialog();
-                } else if (imagePreviewEnabled && passesImageFilterCheck(chosenFile)) {
-                    //TODO: Launch imageDialog here.
-                    Bitmap imageFileBitmap = mBitmapFileFilter.retrieveStoredBitmap();
-                    ImageDialog imgDialog = new ImageDialog(mActivity, imageFileBitmap);
-                    imgDialog.showDialog();
+                } else if (imagePreviewEnabled) {
+                    if (passesImageFilterCheck(chosenFile)) {
+                        //TODO: Launch imageDialog here.
+                        Bitmap imageFileBitmap = mBitmapFileFilter.retrieveStoredBitmap();
+                        ImageDialog imgDialog = new ImageDialog(mActivity, imageFileBitmap);
+                        imgDialog.addObserver(FileDialog.this);
+                        imgDialog.showDialog();
+                    } else {
+                        String message = String.format(
+                                "The image you selected does not meet the resolution target of %d x %d. Would you like to try again?",
+                                mBitmapFileFilter.getTargetWidth(),
+                                mBitmapFileFilter.getTargetHeight());
+                        DialogInterface.OnClickListener onButtonClick =
+                                new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int which) {
+                                if (which == DialogInterface.BUTTON_POSITIVE) {
+                                    showDialog();
+                                } else {
+                                    Log.i(TAG, "Image Loading Failure: User cancelled the file dialog.");
+                                }
+                            }
+                        };
+                        new AlertDialog.Builder(mActivity)
+                                .setTitle("Image Failure")
+                                .setMessage(message)
+                                .setPositiveButton("Yes", onButtonClick)
+                                .setNegativeButton("No", onButtonClick)
+                                .create()
+                                .show();
+                    }
                 } else fireFileSelectedEvent(chosenFile);
             }
         });
@@ -155,6 +198,18 @@ public class FileDialog {
         cancelButtonClickListener = listener;
     }
 
+    public void setSelectDirectoryOption(boolean selectDirectoryOption) {
+        this.selectDirectoryOption = selectDirectoryOption;
+    }
+
+    public void addDirectoryListener(DirectorySelectedListener listener) {
+        dirListenerList.add(listener);
+    }
+
+    public void removeDirectoryListener(DirectorySelectedListener listener) {
+        dirListenerList.remove(listener);
+    }
+
     /**
      * Set whether the image preview feature is enabled or disabled on your file dialog.
      * @param isEnabled Boolean true if you want the image preview feature enabled, or false if otherwise.
@@ -175,21 +230,18 @@ public class FileDialog {
 
     public void setImageResolutionFilter(int targetWidth, int targetHeight) {
 
-        if (imagePreviewEnabled) {
-            mBitmapFileFilter.setTargetResolution(targetWidth, targetHeight);
+        if (!imagePreviewEnabled) {
+            setImagePreviewEnabled(true);
         }
+        mBitmapFileFilter.setTargetResolution(targetWidth, targetHeight);
     }
 
-    public void setSelectDirectoryOption(boolean selectDirectoryOption) {
-        this.selectDirectoryOption = selectDirectoryOption;
+    public void addBitmapListener(BitmapSelectedListener listener) {
+        bitmapListenerList.add(listener);
     }
 
-    public void addDirectoryListener(DirectorySelectedListener listener) {
-        dirListenerList.add(listener);
-    }
-
-    public void removeDirectoryListener(DirectorySelectedListener listener) {
-        dirListenerList.remove(listener);
+    public void removeBitmapListener(BitmapSelectedListener listener) {
+        bitmapListenerList.remove(listener);
     }
 
     /**
@@ -211,6 +263,14 @@ public class FileDialog {
         dirListenerList.fireEvent(new ListenerList.FireHandler<DirectorySelectedListener>() {
             public void fireEvent(DirectorySelectedListener listener) {
                 listener.directorySelected(directory);
+            }
+        });
+    }
+
+    private void fireBitmapSelectedEvent(final Bitmap bitmap) {
+        bitmapListenerList.fireEvent(new ListenerList.FireHandler<BitmapSelectedListener>() {
+            public void fireEvent(BitmapSelectedListener listener) {
+                listener.bitmapSelected(bitmap);
             }
         });
     }

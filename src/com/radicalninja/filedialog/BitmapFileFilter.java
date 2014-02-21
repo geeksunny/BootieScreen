@@ -12,6 +12,7 @@ import java.io.FileFilter;
  */
 public class BitmapFileFilter implements FileFilter {
 
+    private static final String LOG_TAG = "BitmapFileFilter";
     private int mTargetWidth, mTargetHeight;
     private Bitmap mStoredBitmap;
     private boolean mShouldStoreBitmap = false;
@@ -156,5 +157,13 @@ public class BitmapFileFilter implements FileFilter {
 
         mTargetWidth = targetWidth;
         mTargetHeight = targetHeight;
+    }
+
+    public int getTargetWidth() {
+        return mTargetWidth;
+    }
+
+    public int getTargetHeight() {
+        return mTargetHeight;
     }
 }

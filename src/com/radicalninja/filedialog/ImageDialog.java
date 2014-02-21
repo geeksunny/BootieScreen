@@ -6,16 +6,26 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import java.io.File;
+import java.util.Observable;
 
-public class ImageDialog {
+public class ImageDialog extends Observable {
 
     private Bitmap mBitmap;
     private Context mContext;
+
+    protected class ImagePayload {
+        protected boolean isPositive;
+        protected Bitmap bitmap;
+
+        public ImagePayload(boolean isPositive, Bitmap bitmap) {
+            this.isPositive = isPositive;
+            this.bitmap = bitmap;
+        }
+    }
 
     public ImageDialog(Context context, String targetFilePath) {
 
@@ -60,15 +70,16 @@ public class ImageDialog {
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                Log.e(this.getClass().getSimpleName(), "Yes clicked.");
+                ImageDialog.this.notifyObservers(new ImagePayload(true, mBitmap));
             }
         });
         builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                Log.e(this.getClass().getSimpleName(), "No clicked.");
+                ImageDialog.this.notifyObservers(new ImagePayload(false, null));
             }
         });
+        this.setChanged();  // For the observer
         return builder.show();
     }
 }

@@ -459,13 +459,22 @@ public class MainActivity extends Activity {
             String[] fileEndsWith = { ".png", ".bmp", ".jpg" };
             FileDialog fileDialog = new FileDialog(this, mPath, fileEndsWith);
             fileDialog.setFileHistoryEnabled(true);
-            fileDialog.setImagePreviewEnabled(true);
-            fileDialog.addFileListener(new FileDialog.FileSelectedListener() {
-                public void fileSelected(File file) {
-                    Log.d(getClass().getName(), "selected file " + file.toString());
-                    // ASSUMING THE FILE PATH IS GOOD... SHOULD VERIFY THIS
-                    // ALSO NEED TO OPEN FILE AND VERIFY IT IS PROPER DIMENSIONS, OFFER TO RESIZE IF NOT.
-                    loadImage(file.toString());
+            fileDialog.setImageResolutionFilter(Bootscreen.BOOTSCREEN_RESOLUTION_WIDTH, Bootscreen.BOOTSCREEN_RESOLUTION_HEIGHT);
+            fileDialog.addBitmapListener(new FileDialog.BitmapSelectedListener() {
+                @Override
+                public void bitmapSelected(Bitmap bitmap) {
+                    // Setting the Bootscreen to use the new bitmap.
+                    mBootscreenHelper.getBootscreen().setOriginalState(bitmap, true);
+                    // Updating the preview pane.
+                    previewView.setImageBitmap(bitmap);
+                    // Save the new bitmap to the sdcard for future use.
+                    saveBitmapToDeviceBackup(bitmap);
+                }
+            });
+            fileDialog.setCancelButtonClickListener(new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    Log.i(LOG_TAG, "File Dialog canceled with button.");
                 }
             });
             fileDialog.showDialog();
@@ -702,31 +711,7 @@ public class MainActivity extends Activity {
                 Bitmap bitmap = mBootscreenHelper.getBitmap();
                 previewView.setImageBitmap(bitmap);
                 // Save the stock bitmap to the sdcard for future use.
-                // - Task data model
-                class BitmapTaskInfo {
-                    Bitmap bitmap;
-                    String filename;
-                    public BitmapTaskInfo(Bitmap b, String f) {
-                        bitmap = b;
-                        filename = f;
-                    }
-                }
-                // - AsyncTask code
-                class SaveBitmapTask extends AsyncTask<BitmapTaskInfo, Void, Void> {
-
-                    protected Void doInBackground(BitmapTaskInfo... taskInfo) {
-                        for (BitmapTaskInfo info : taskInfo) {
-                            mBootscreenHelper.saveBitmapToSdcard(info.bitmap, info.filename);
-                        }
-                        return null;
-                    }
-                    //protected void onPreExecute() { }
-                    //protected void onProgressUpdate(Void... status) { }
-                    //protected void onPostExecute(Void result) { }
-                }
-                // - Create the task and execute
-                SaveBitmapTask task = new SaveBitmapTask();
-                task.execute(new BitmapTaskInfo(bitmap, mBootscreenHelper.FILENAME_DEVICE_BACKUP));
+                saveBitmapToDeviceBackup(bitmap);
             }
 
             @Override
@@ -743,6 +728,34 @@ public class MainActivity extends Activity {
         mBootscreenHelper
                 .setCallback(loadScreenCallback)
                 .bitmapToBootscreen(filePath);
+    }
+
+    private void saveBitmapToDeviceBackup(Bitmap bitmap) {
+        // - Task data model
+        class BitmapTaskInfo {
+            Bitmap bitmap;
+            String filename;
+            public BitmapTaskInfo(Bitmap b, String f) {
+                bitmap = b;
+                filename = f;
+            }
+        }
+        // - AsyncTask code
+        class SaveBitmapTask extends AsyncTask<BitmapTaskInfo, Void, Void> {
+
+            protected Void doInBackground(BitmapTaskInfo... taskInfo) {
+                for (BitmapTaskInfo info : taskInfo) {
+                    mBootscreenHelper.saveBitmapToSdcard(info.bitmap, info.filename);
+                }
+                return null;
+            }
+            //protected void onPreExecute() { }
+            //protected void onProgressUpdate(Void... status) { }
+            //protected void onPostExecute(Void result) { }
+        }
+        // - Create the task and execute
+        SaveBitmapTask task = new SaveBitmapTask();
+        task.execute(new BitmapTaskInfo(bitmap, mBootscreenHelper.FILENAME_DEVICE_BACKUP));
     }
 
     /**

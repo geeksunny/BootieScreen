@@ -33,6 +33,7 @@ public class FileDialog {
     private boolean selectDirectoryOption;
     private String[] mFileEndsWith;
     private boolean fileHistoryEnabled = false;
+    private DialogInterface.OnClickListener cancelButtonClickListener;
     private Stack<String> mFileHistory;
     private boolean imagePreviewEnabled = false;
     private BitmapFileFilter mBitmapFileFilter;
@@ -114,6 +115,10 @@ public class FileDialog {
             }
         });
 
+        if (cancelButtonClickListener != null) {
+            builder.setNegativeButton("Cancel", cancelButtonClickListener);
+        }
+
         dialog = builder.create();
         return dialog;
     }
@@ -143,6 +148,11 @@ public class FileDialog {
                 mFileHistory = null;
             }
         }
+    }
+
+    public void setCancelButtonClickListener(DialogInterface.OnClickListener listener) {
+
+        cancelButtonClickListener = listener;
     }
 
     /**

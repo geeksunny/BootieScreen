@@ -89,6 +89,7 @@ public class FontIcon extends TextView {
 
         String icon = mIconMap.get(iconName);
         if (icon == null) {
+            // TODO: Figure out why some data is being ran through this method with null data before the alert dialog has even been displayed.
             Log.e(LOG_TAG, "iconName is failed.");
             icon = mIconMap.get(DEFAULT_ICON);
         }

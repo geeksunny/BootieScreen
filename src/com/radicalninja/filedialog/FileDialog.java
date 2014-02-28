@@ -21,7 +21,7 @@ public class FileDialog implements Observer {
 
     private static final String PARENT_DIR = "..";
     private final String TAG = getClass().getName();
-    private String[] mFileList;
+    private FileListAdapter mFileListAdapter;
     private File mCurrentPath;
     public interface FileSelectedListener {
         void fileSelected(File file);
@@ -49,6 +49,7 @@ public class FileDialog implements Observer {
     public FileDialog(Activity activity, File path) {
         mActivity = activity;
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
+        mFileListAdapter = new FileListAdapter(activity);
         loadFileList(path);
     }
 
@@ -56,6 +57,7 @@ public class FileDialog implements Observer {
         mActivity = activity;
         setFileEndsWith(fileEndsWith);
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
+        mFileListAdapter = new FileListAdapter(activity);
         loadFileList(path);
     }
 
@@ -63,6 +65,7 @@ public class FileDialog implements Observer {
         mActivity = activity;
         setFileEndsWith(fileEndsWith);
         if (!path.exists()) path = Environment.getExternalStorageDirectory();
+        mFileListAdapter = new FileListAdapter(activity);
         loadFileList(path);
     }
 
@@ -85,6 +88,10 @@ public class FileDialog implements Observer {
         AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
 
         builder.setTitle(mCurrentPath.getPath());
+        IconItemView.IconItem title = new IconItemView.IconItem(mCurrentPath.getPath(), IconItemView.IconItem.IconType.CURRENT_DIRECTORY);
+        IconItemView titleView = new IconItemView(mActivity);
+        titleView.bind(title);
+        builder.setCustomTitle(titleView);
         if (selectDirectoryOption) {
             builder.setPositiveButton("Select directory", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
@@ -114,9 +121,10 @@ public class FileDialog implements Observer {
             });
         }
 
-        builder.setItems(mFileList, new DialogInterface.OnClickListener() {
+        //builder.setItems(mFileList, new DialogInterface.OnClickListener() {
+        builder.setAdapter(mFileListAdapter, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                String fileChosen = mFileList[which];
+                String fileChosen = mFileListAdapter.getItem(which).label;
                 File chosenFile = getChosenFile(fileChosen);
                 if (chosenFile.isDirectory()) {
                     loadFileList(chosenFile);
@@ -137,15 +145,15 @@ public class FileDialog implements Observer {
                                 mBitmapFileFilter.getTargetHeight());
                         DialogInterface.OnClickListener onButtonClick =
                                 new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int which) {
-                                if (which == DialogInterface.BUTTON_POSITIVE) {
-                                    showDialog();
-                                } else {
-                                    Log.i(TAG, "Image Loading Failure: User cancelled the file dialog.");
-                                }
-                            }
-                        };
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int which) {
+                                        if (which == DialogInterface.BUTTON_POSITIVE) {
+                                            showDialog();
+                                        } else {
+                                            Log.i(TAG, "Image Loading Failure: User cancelled the file dialog.");
+                                        }
+                                    }
+                                };
                         new AlertDialog.Builder(mActivity)
                                 .setTitle("Image Failure")
                                 .setMessage(message)
@@ -277,9 +285,13 @@ public class FileDialog implements Observer {
 
     private void loadFileList(File path) {
         this.mCurrentPath = path;
-        List<String> r = new ArrayList<String>();
+        //List<String> r = new ArrayList<String>();
+        mFileListAdapter.clearItems();
         if (path.exists()) {
-            if (path.getParentFile() != null) r.add(PARENT_DIR);
+            if (path.getParentFile() != null) {
+                mFileListAdapter.addItem(
+                        new IconItemView.IconItem(PARENT_DIR,IconItemView.IconItem.IconType.PARENT_DIRECTORY));
+            }
             FilenameFilter filter = new FilenameFilter() {
                 public boolean accept(File dir, String filename) {
                     File sel = new File(dir, filename);
@@ -291,15 +303,22 @@ public class FileDialog implements Observer {
                     }
                 }
             };
-            String[] fileList1 = path.list(filter);
-            for (String file : fileList1) {
-                r.add(file);
+            String[] fileList = path.list(filter);
+            for (String file : fileList) {
+                // TODO: Come up with a better way to check if this is a directory or not. Try to consolidate this with the File objects in the filename filter.
+                if (new File(path, file).isDirectory()) {
+                    mFileListAdapter.addItem(
+                            new IconItemView.IconItem(file,IconItemView.IconItem.IconType.DIRECTORY));
+                } else {
+                    mFileListAdapter.addItem(
+                            new IconItemView.IconItem(file,IconItemView.IconItem.IconType.FILE));
+                    // TODO: Implement the ability to differentiate between images and other file types.
+                }
             }
         }
         if (fileHistoryEnabled) {
             historyAddCurrent();
         }
-        mFileList = (String[]) r.toArray(new String[]{});
     }
 
     private File getChosenFile(String fileChosen) {

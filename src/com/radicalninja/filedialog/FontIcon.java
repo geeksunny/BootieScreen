@@ -22,7 +22,7 @@ public class FontIcon extends TextView {
     private static Typeface mFont;
 
     static {
-
+        // TODO: Convert this map into an enum object that would match values in attrs.xml.
         mIconMap.put("picture", "\ue600");
         mIconMap.put("folder-close", "\ue601");
         mIconMap.put("folder-open", "\ue602");
@@ -89,7 +89,6 @@ public class FontIcon extends TextView {
 
         String icon = mIconMap.get(iconName);
         if (icon == null) {
-            // TODO: Figure out why some data is being ran through this method with null data before the alert dialog has even been displayed.
             Log.e(LOG_TAG, "iconName is failed.");
             icon = mIconMap.get(DEFAULT_ICON);
         }

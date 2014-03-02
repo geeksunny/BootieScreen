@@ -2,19 +2,15 @@ package com.radicalninja.filedialog;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.Gravity;
-import android.view.View;
+import android.view.LayoutInflater;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.radicalninja.bootiescreen.R;
+
 public class IconItemView extends LinearLayout {
 
-    // TODO: Move a lot of this stuff into an xml layout file when this code gets moved into a library project.
     private static final int PADDING_PARENT = 25;
-    private static final int PADDING_CHILDREN = 10;
-    // TODO: Adjust bounds and gravity of both the icon and the label to align them properly with one another.
-    private static final int FONT_SIZE_ICON = 20;
-    private static final int FONT_SIZE_LABEL = 14;
     protected FontIcon mIconView;
     protected TextView mLabelView;
     private Context mContext;
@@ -58,18 +54,15 @@ public class IconItemView extends LinearLayout {
     }
 
     private void init() {
-        // Icon view
-        mIconView = new FontIcon(mContext);
-        mIconView.setPadding(PADDING_CHILDREN, PADDING_CHILDREN, PADDING_CHILDREN, PADDING_CHILDREN);
-        mIconView.setTextSize(FONT_SIZE_ICON);
-        // Label view
-        mLabelView = new TextView(mContext);
-        mLabelView.setPadding(PADDING_CHILDREN, PADDING_CHILDREN, PADDING_CHILDREN, PADDING_CHILDREN);
-        mLabelView.setTextSize(FONT_SIZE_LABEL);
-        // Parent
+        // LinearLayout params
         this.setPadding(PADDING_PARENT, PADDING_PARENT, PADDING_PARENT, PADDING_PARENT);
-        this.addView(mIconView);
-        this.addView(mLabelView);
+        this.setOrientation(LinearLayout.HORIZONTAL);
+        // Layout children.
+        LayoutInflater inflater = (LayoutInflater) mContext
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater.inflate(R.layout.filedialog_iconitemview, this, true);
+        mIconView = (FontIcon) findViewById(R.id.item_icon);
+        mLabelView = (TextView) findViewById(R.id.item_label);
     }
 
     public void bind(IconItem item) {
